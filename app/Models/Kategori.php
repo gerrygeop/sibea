@@ -13,7 +13,7 @@ class Kategori extends Model
 
     protected $table = 'kategoris';
 
-    protected $guarded = [
+    protected $fillable = [
         'nama_kategori',
         'deskripsi',
     ];
