@@ -6,7 +6,7 @@ use App\Filament\Exports\MahasiswaExporter;
 use App\Filament\Resources\MahasiswaResource\Pages;
 use App\Filament\Resources\MahasiswaResource\RelationManagers\BeasiswasRelationManager;
 use App\Models\Mahasiswa;
-use Filament\Forms;
+use App\Models\User;
 use Filament\Forms\Components;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;

@@ -38,7 +38,7 @@ class MahasiswaFactory extends Factory
             'nama' => $user->name,
             'email' => $this->faker->unique()->safeEmail(),
             'ttl' => $this->faker->date('Y-m-d', '2005-01-01'), // Tambahan untuk 'ttl'
-            'no_hp' => $this->faker->phoneNumber(),
+            'no_hp' => '08' . $this->faker->numerify('##########'),
             'prodi' => $prodi,
             'fakultas' => $fakultas,
             'angkatan' => $this->faker->numberBetween(2020, 2024),
