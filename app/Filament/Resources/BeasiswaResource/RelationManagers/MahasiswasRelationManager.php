@@ -19,9 +19,6 @@ class MahasiswasRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                // Forms\Components\TextInput::make('user_id')
-                // ->required()
-                // ->numeric(),
                 Forms\Components\TextInput::make('nama')
                     ->required(),
                 Forms\Components\TextInput::make('email')
@@ -142,6 +139,10 @@ class MahasiswasRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
                 Tables\Actions\AttachAction::make()
+                    ->form(fn(Tables\Actions\AttachAction $action): array => [
+                        $action->getRecordSelect(),
+                        Forms\Components\DatePicker::make('tanggal_penerimaan')->required(),
+                    ])
                     ->preloadRecordSelect(),
             ])
             ->actions([
