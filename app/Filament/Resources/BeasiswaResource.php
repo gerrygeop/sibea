@@ -4,11 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Exports\BeasiswaExporter;
 use App\Filament\Resources\BeasiswaResource\Pages;
-use App\Filament\Resources\BeasiswaResource\RelationManagers;
 use App\Filament\Resources\BeasiswaResource\RelationManagers\MahasiswasRelationManager;
 use App\Models\Beasiswa;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -19,7 +20,7 @@ class BeasiswaResource extends Resource
 {
     protected static ?string $model = Beasiswa::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
     public static function form(Form $form): Form
     {
@@ -53,6 +54,49 @@ class BeasiswaResource extends Resource
                     ->columns(2)
                     ->columnSpanFull(),
             ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->components([
+                Components\Section::make()
+                    ->schema([
+                        Components\TextEntry::make('nama_beasiswa'),
+                        Components\TextEntry::make('kategori.nama_kategori'),
+                        Components\TextEntry::make('lembaga_penyelenggara'),
+                        Components\TextEntry::make('besar_beasiswa')
+                            ->numeric()
+                            ->money('idr'),
+                        Components\TextEntry::make('periode'),
+
+                        Components\TextEntry::make('mahasiswas.0.pivot.status')
+                            ->label('Status')
+                            ->badge()
+                            ->visible(fn() => auth()->user()->hasRole('mahasiswa')),
+
+                        Components\TextEntry::make('deskripsi')
+                            ->placeholder('-')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->columnSpan(2),
+
+                Components\Section::make()
+                    ->schema([
+                        Components\TextEntry::make('created_at')
+                            ->dateTime()
+                            ->placeholder('-'),
+                        Components\TextEntry::make('updated_at')
+                            ->dateTime()
+                            ->placeholder('-'),
+                        Components\TextEntry::make('deleted_at')
+                            ->dateTime()
+                            ->visible(fn(Beasiswa $record): bool => $record->trashed()),
+                    ])
+                    ->columnSpan(1),
+            ])
+            ->columns(3);
     }
 
     public static function table(Table $table): Table
