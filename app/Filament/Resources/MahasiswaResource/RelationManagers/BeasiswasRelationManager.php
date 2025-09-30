@@ -83,16 +83,8 @@ class BeasiswasRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('periode')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('mahasiswas')
+                Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->getStateUsing(function ($record) {
-                        $userId = auth()->id();
-
-                        // ambil status dari pivot untuk user login
-                        return $record->mahasiswas
-                            ->where('id', $userId)
-                            ->first()?->pivot?->status ?? '-';
-                    })
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
