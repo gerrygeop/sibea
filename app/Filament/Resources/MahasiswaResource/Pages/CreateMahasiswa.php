@@ -21,10 +21,11 @@ class CreateMahasiswa extends CreateRecord
                     'name' => $data['nama'], // Ambil nama dari form mahasiswa
                     'nim' => $data['nim'],
                     'password' => $data['password'], // Password sudah di-hash oleh form
+                    'role_id' => 3,
                 ]);
 
                 // Berikan role 'mahasiswa'
-                $user->assignRole('mahasiswa');
+                // $user->assignRole('mahasiswa');
 
                 // Hapus data yang tidak ada di tabel mahasiswas
                 unset($data['nim'], $data['password']);

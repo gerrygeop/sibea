@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MahasiswaResource\RelationManagers;
 
+use App\Filament\Exports\BeasiswaExporter;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -107,21 +108,19 @@ class BeasiswasRelationManager extends RelationManager
                     ->relationship('kategori', 'nama_kategori'),
             ])
             ->headerActions([
+                // Tables\Actions\ExportAction::make()
+                //     ->exporter(BeasiswaExporter::class),
                 Tables\Actions\CreateAction::make(),
                 Tables\Actions\AttachAction::make()
                     ->preloadRecordSelect()
-                    ->action(function (array $data, Tables\Actions\AttachAction $action) {
-                        // Ambil record mahasiswa saat ini (owner)
-                        $mahasiswa = $this->getOwnerRecord();
-
-                        // Lakukan attach dengan menyertakan data pivot
-                        $mahasiswa->beasiswas()->attach($data['recordId'], [
-                            'tanggal_penerimaan' => now(),
-                        ]);
-                    }),
+                    ->form(fn(Tables\Actions\AttachAction $action): array => [
+                        $action->getRecordSelect(),
+                        Components\DatePicker::make('tanggal_penerimaan')->required(),
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DetachAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

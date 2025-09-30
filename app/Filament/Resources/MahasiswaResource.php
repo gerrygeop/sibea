@@ -64,6 +64,10 @@ class MahasiswaResource extends Resource
                             ->required()
                             ->maxLength(255),
 
+                        Components\DatePicker::make('ttl')
+                            ->label('Tanggal Lahir')
+                            ->required(),
+
                         Components\TextInput::make('no_hp')
                             ->tel()
                             ->required()
@@ -82,15 +86,26 @@ class MahasiswaResource extends Resource
                             ->numeric()
                             ->required(),
 
+                        Components\TextInput::make('semester')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(14)
+                            ->required(),
+
+                        Components\TextInput::make('sks')
+                            ->label('SKS (Satuan Kredit Semester)')
+                            ->numeric()
+                            ->required(),
+
                         Components\TextInput::make('ip')
-                            ->label('IP')
+                            ->label('IP (Indeks Prestasi)')
                             ->numeric()
                             ->required()
                             ->minValue(0)
                             ->maxValue(4),
 
                         Components\TextInput::make('ipk')
-                            ->label('IPK')
+                            ->label('IPK (Indeks Prestasi Kumulatif)')
                             ->numeric()
                             ->required()
                             ->minValue(0)
@@ -118,9 +133,9 @@ class MahasiswaResource extends Resource
                         TextEntry::make('prodi'),
                         TextEntry::make('fakultas'),
                         TextEntry::make('angkatan'),
+                        TextEntry::make('semester'),
                         TextEntry::make('sks')
                             ->numeric(),
-                        TextEntry::make('semester'),
                         TextEntry::make('ip')
                             ->label('IP')
                             ->badge()
