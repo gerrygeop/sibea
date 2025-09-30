@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('prodi');
             $table->string('fakultas');
             $table->string('angkatan');
-            $table->decimal('sks');
+            $table->decimal('sks', 3, 0);
             $table->string('semester');
             $table->decimal('ip', 4, 2);
             $table->decimal('ipk', 4, 2);
