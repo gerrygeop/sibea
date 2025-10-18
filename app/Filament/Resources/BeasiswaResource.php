@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Exports\BeasiswaExporter;
 use App\Filament\Resources\BeasiswaResource\Pages;
 use App\Filament\Resources\BeasiswaResource\RelationManagers\MahasiswasRelationManager;
+use App\Filament\Resources\BeasiswaResource\RelationManagers\PeriodeBeasiswasRelationManager;
 use App\Models\Beasiswa;
+use App\Models\PeriodeBeasiswa;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components;
@@ -41,13 +43,6 @@ class BeasiswaResource extends Resource
                         Forms\Components\TextInput::make('lembaga_penyelenggara')
                             ->required(),
 
-                        Forms\Components\TextInput::make('besar_beasiswa')
-                            ->required()
-                            ->numeric(),
-
-                        Forms\Components\TextInput::make('periode')
-                            ->required(),
-
                         Forms\Components\Textarea::make('deskripsi')
                             ->columnSpanFull(),
                     ])
@@ -65,15 +60,9 @@ class BeasiswaResource extends Resource
                         Components\TextEntry::make('nama_beasiswa'),
                         Components\TextEntry::make('kategori.nama_kategori'),
                         Components\TextEntry::make('lembaga_penyelenggara'),
-                        Components\TextEntry::make('besar_beasiswa')
-                            ->numeric()
-                            ->money('idr'),
-                        Components\TextEntry::make('periode'),
-
-                        Components\TextEntry::make('mahasiswas.0.pivot.status')
-                            ->label('Status')
-                            ->badge()
-                            ->visible(fn() => auth()->user()->hasRole('mahasiswa')),
+                        // Components\TextEntry::make('besar_beasiswa')
+                        //     ->numeric()
+                        //     ->money('idr'),
 
                         Components\TextEntry::make('deskripsi')
                             ->placeholder('-')
@@ -113,20 +102,6 @@ class BeasiswaResource extends Resource
                 Tables\Columns\TextColumn::make('lembaga_penyelenggara')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('besar_beasiswa')
-                    ->numeric()
-                    ->money('idr')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('periode')
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('mahasiswas.0.pivot.status')
-                    ->label('Status')
-                    ->badge()
-                    ->searchable()
-                    ->visible(fn() => auth()->user()->hasRole('mahasiswa')),
-
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -144,11 +119,8 @@ class BeasiswaResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
-                Tables\Filters\SelectFilter::make('jenis_beasiswa')
-                    ->options([
-                        'prestasi' => 'Prestasi',
-                        'tidak mampu' => 'Tidak mampu',
-                    ]),
+                Tables\Filters\SelectFilter::make('kategori')
+                    ->relationship('kategori', 'nama_kategori'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -172,7 +144,8 @@ class BeasiswaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            MahasiswasRelationManager::class
+            // MahasiswasRelationManager::class
+            PeriodeBeasiswasRelationManager::class,
         ];
     }
 
