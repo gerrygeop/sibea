@@ -23,8 +23,8 @@ return new class extends Migration
             $table->id();
             $table->string('nama_beasiswa');
             $table->string('lembaga_penyelenggara');
-            $table->unsignedInteger('besar_beasiswa'); // in Rupiah
-            $table->string('periode'); // e.g., '2025/2026'
+            // $table->unsignedInteger('besar_beasiswa'); // in Rupiah
+            // $table->string('periode'); // e.g., '2025/2026'
             $table->text('deskripsi')->nullable();
             $table->timestamps();
             $table->softDeletes();

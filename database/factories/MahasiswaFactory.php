@@ -37,7 +37,8 @@ class MahasiswaFactory extends Factory
             'user_id' => $user->id,
             'nama' => $user->name,
             'email' => $this->faker->unique()->safeEmail(),
-            'ttl' => $this->faker->date('Y-m-d', '2005-01-01'), // Tambahan untuk 'ttl'
+            'tempat_lahir' => $this->faker->city(),
+            'tanggal_lahir' => $this->faker->date('Y-m-d', '2005-01-01'), // Tambahan untuk 'ttl'
             'no_hp' => '08' . $this->faker->numerify('##########'),
             'prodi' => $prodi,
             'fakultas' => $fakultas,
@@ -49,20 +50,20 @@ class MahasiswaFactory extends Factory
         ];
     }
 
-    public function configure(): static
-    {
-        return $this->afterCreating(function (Mahasiswa $mahasiswa) {
+    // public function configure(): static
+    // {
+    //     return $this->afterCreating(function (Mahasiswa $mahasiswa) {
 
-            $beasiswasToAttach = Beasiswa::inRandomOrder()
-                ->limit($this->faker->numberBetween(1, 3))
-                ->get();
+    //         $beasiswasToAttach = Beasiswa::inRandomOrder()
+    //             ->limit($this->faker->numberBetween(1, 3))
+    //             ->get();
 
-            // Lampirkan beasiswa ke mahasiswa dengan data pivot tambahan
-            foreach ($beasiswasToAttach as $beasiswa) {
-                $mahasiswa->beasiswas()->attach($beasiswa->id, [
-                    'tanggal_penerimaan' => $this->faker->numberBetween(2021, 2025),
-                ]);
-            }
-        });
-    }
+    //         // Lampirkan beasiswa ke mahasiswa dengan data pivot tambahan
+    //         foreach ($beasiswasToAttach as $beasiswa) {
+    //             $mahasiswa->beasiswas()->attach($beasiswa->id, [
+    //                 'tanggal_penerimaan' => $this->faker->numberBetween(2021, 2025),
+    //             ]);
+    //         }
+    //     });
+    // }
 }

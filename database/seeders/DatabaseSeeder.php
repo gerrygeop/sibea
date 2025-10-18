@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Beasiswa;
 use App\Models\Mahasiswa;
+use App\Models\PeriodeBeasiswa;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -84,7 +85,7 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
 
-        Beasiswa::factory(20)->create();
+        PeriodeBeasiswa::factory(5)->create();
         Mahasiswa::factory(50)->create();
     }
 }
