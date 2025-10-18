@@ -1,5 +1,3 @@
-## Inventori App
+## SIBEA
 
-### Laravel - Filament
-
-<img src="Inventori.png" style="border-radius: 20px;" />
+### Sistem Informasi Beasiswa
