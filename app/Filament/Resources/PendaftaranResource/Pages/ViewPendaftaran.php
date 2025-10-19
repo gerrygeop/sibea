@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\PendaftaranResource\Pages;
 
+use App\Enums\StatusPendaftaran;
 use App\Filament\Resources\PendaftaranResource;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -20,14 +22,25 @@ class ViewPendaftaran extends ViewRecord
         // Aksi untuk mahasiswa
         if ($user->hasRole('mahasiswa')) {
             $actions[] = Actions\EditAction::make()
-                ->visible(fn() => $this->record->status === 'draft');
+                ->visible(fn() => in_array($this->record->status, [
+                    StatusPendaftaran::DRAFT,
+                    StatusPendaftaran::PERBAIKAN,
+                ]));
 
             $actions[] = Actions\Action::make('kirim')
-                ->label('Kirim Pendaftaran')
+                ->label(
+                    fn() => $this->record->status === StatusPendaftaran::PERBAIKAN
+                        ? 'Kirim Ulang Pendaftaran'
+                        : 'Kirim Pendaftaran'
+                )
                 ->icon('heroicon-o-paper-airplane')
                 ->requiresConfirmation()
                 ->modalHeading('Konfirmasi Pendaftaran')
-                ->modalDescription('Setelah dikirim anda tidak dapat mengedit pendaftaran ini lagi. Pastikan semua data dan berkas sudah benar.')
+                ->modalDescription(
+                    fn() => $this->record->status === StatusPendaftaran::PERBAIKAN
+                        ? 'Pastikan Anda sudah melakukan perbaikan sesuai catatan yang diberikan.'
+                        : 'Setelah dikirim Anda tidak dapat mengedit pendaftaran ini lagi sampai diizinkan oleh admin.'
+                )
                 ->modalSubmitActionLabel('Ya, Kirim Pendaftaran')
                 ->modalCancelActionLabel('Batal')
                 ->color('success')
@@ -45,21 +58,29 @@ class ViewPendaftaran extends ViewRecord
                     }
 
                     $record->update([
-                        'status' => 'verifikasi',
+                        'status' => StatusPendaftaran::VERIFIKASI,
                     ]);
+
+                    $message = $record->status === StatusPendaftaran::PERBAIKAN
+                        ? 'Pendaftaran Anda telah dikirim ulang untuk diverifikasi.'
+                        : 'Pendaftaran Anda telah dikirim untuk diverifikasi.';
 
                     Notification::make()
                         ->title('Pendaftaran Terkirim!')
-                        ->body('Pendaftaran Anda telah dikirim untuk diverifikasi. Silakan tunggu hasil verifikasi dari admin.')
+                        ->body($message)
                         ->success()
                         ->send();
 
                     $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
                 })
-                ->visible(function () {
-                    return $this->record->status === 'draft' &&
-                        $this->record->mahasiswa_id === auth()->user()->mahasiswa->id;
-                });
+                ->visible(
+                    fn() =>
+                    in_array($this->record->status, [
+                        StatusPendaftaran::DRAFT,
+                        StatusPendaftaran::PERBAIKAN,
+                    ]) &&
+                        $this->record->mahasiswa_id === auth()->user()->mahasiswa->id
+                );
         }
 
         // Aksi untuk admin/staf
@@ -71,19 +92,23 @@ class ViewPendaftaran extends ViewRecord
                 ->modalHeading('Update Status Pendaftaran')
                 ->form([
                     Forms\Components\Select::make('status')
-                        ->label('Status')
-                        ->options([
-                            'verifikasi' => 'Menunggu Verifikasi',
-                            'diterima' => 'Diterima',
-                            'ditolak' => 'Ditolak',
-                        ])
+                        ->options(
+                            collect(StatusPendaftaran::cases())
+                                ->filter(fn(StatusPendaftaran $status) => $status !== StatusPendaftaran::DRAFT)
+                                ->mapWithKeys(fn(StatusPendaftaran $status) => [
+                                    $status->value => $status->getLabel()
+                                ])
+                        )
                         ->required()
-                        ->default(fn() => $this->record->status),
+                        ->default(fn() => $this->record->status->value)
+                        ->live(),
 
                     Forms\Components\Textarea::make('note')
                         ->label('Catatan')
-                        ->placeholder('Tambahkan catatan untuk mahasiswa (opsional)')
+                        ->helperText('Wajib diisi jika status Perlu Perbaikan')
+                        ->placeholder('Tambahkan catatan untuk mahasiswa')
                         ->default(fn() => $this->record->note)
+                        ->required(fn(Get $get) => $get('status') === StatusPendaftaran::PERBAIKAN->value),
                 ])
                 ->action(function (array $data): void {
                     $this->record->update([
@@ -91,76 +116,19 @@ class ViewPendaftaran extends ViewRecord
                         'note' => $data['note'],
                     ]);
 
-                    $statusLabel = match ($data['status']) {
-                        'verifikasi' => 'menunggu verifikasi',
-                        'diterima' => 'diterima',
-                        'ditolak' => 'ditolak',
-                        default => $data['status'],
-                    };
+                    $status = StatusPendaftaran::from($data['status']);
 
                     Notification::make()
                         ->title('Status Diperbarui')
-                        ->body("Pendaftaran telah {$statusLabel}.")
+                        ->body("Status pendaftaran telah diubah menjadi: {$status->getLabel()}")
                         ->success()
                         ->send();
 
                     $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
                 })
-                ->visible(fn() => $this->record->status !== 'draft');
+                ->visible(fn() => $this->record->status !== StatusPendaftaran::DRAFT);
         }
 
         return $actions;
     }
-
-    // protected function getHeaderActions(): array
-    // {
-    //     return [
-    //         Actions\EditAction::make()
-    //             ->visible(fn() => auth()->user()->hasRole('mahasiswa') && $this->record->status === 'draft'),
-
-    //         Actions\Action::make('kirim')
-    //             ->label('Kirim Pendaftaran')
-    //             ->icon('heroicon-o-paper-airplane')
-    //             ->requiresConfirmation()
-    //             ->modalHeading('Konfirmasi Pendaftaran')
-    //             ->modalDescription('Setelah dikirim anda tidak dapat mengedit pendaftaran ini lagi. Pastikan semua data dan berkas sudah benar.')
-    //             ->modalSubmitActionLabel('Ya, Kirim Pendaftaran')
-    //             ->modalCancelActionLabel('Batal')
-    //             ->color('success')
-    //             ->action(function () {
-    //                 $record = $this->record;
-
-    //                 $jumlahBerkas = $record->berkasPendaftar()->count();
-    //                 if ($jumlahBerkas === 0) {
-    //                     Notification::make()
-    //                         ->title('Gagal Mengirim')
-    //                         ->body('Anda belum mengupload berkas apapun. Silakan edit pendaftaran dan upload berkas terlebih dahulu.')
-    //                         ->danger()
-    //                         ->send();
-    //                     return;
-    //                 }
-
-    //                 $record->update([
-    //                     'status' => 'verifikasi',
-    //                 ]);
-
-    //                 Notification::make()
-    //                     ->title('Pendaftaran Terkirim!')
-    //                     ->body('Pendaftaran Anda telah dikirim untuk diverifikasi. Silakan tunggu hasil verifikasi dari admin.')
-    //                     ->success()
-    //                     ->send();
-
-    //                 // Refresh halaman
-    //                 $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
-    //             })
-    //             ->visible(function () {
-    //                 $user = auth()->user();
-    //                 $record = $this->record;
-
-    //                 return $user->hasRole('mahasiswa')
-    //                     && $record->status === 'draft'
-    //                     && $record->mahasiswa_id === $user->mahasiswa->id;
-    //             })
-    //     ];
-    // }
 }

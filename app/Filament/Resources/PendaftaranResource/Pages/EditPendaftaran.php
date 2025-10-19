@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\PendaftaranResource\Pages;
 
+use App\Enums\StatusPendaftaran;
 use App\Filament\Resources\PendaftaranResource;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class EditPendaftaran extends EditRecord
 {
@@ -18,7 +20,10 @@ class EditPendaftaran extends EditRecord
         $user = auth()->user();
         $pendaftaran = $this->record;
 
-        if ($user->hasRole('mahasiswa') && $pendaftaran->status !== 'draft') {
+        if ($user->hasRole('mahasiswa') && in_array($this->record->status, [
+            StatusPendaftaran::DRAFT,
+            StatusPendaftaran::PERBAIKAN,
+        ]) === false) {
             Notification::make()
                 ->title('Akses Ditolak')
                 ->body('Anda tidak dapat mengedit pendaftaran yang sudah dikirim atau diproses.')
@@ -26,7 +31,10 @@ class EditPendaftaran extends EditRecord
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $pendaftaran]));
-        } elseif ($user->hasAnyRole(['admin', 'staf']) && $pendaftaran->status === 'draft') {
+        } elseif ($user->hasAnyRole(['admin', 'staf']) && in_array($this->record->status, [
+            StatusPendaftaran::DRAFT,
+            StatusPendaftaran::PERBAIKAN,
+        ]) === true) {
             Notification::make()
                 ->title('Akses Ditolak')
                 ->body('Anda tidak dapat mengedit pendaftaran yang masih draft.')
@@ -53,21 +61,6 @@ class EditPendaftaran extends EditRecord
 
         return $data;
     }
-
-    // protected function mutateFormDataBeforeSave(array $data): array
-    // {
-    //     $user = auth()->user();
-
-    //     // Jika admin/staf yang edit, hanya izinkan update status dan note
-    //     if ($user->hasAnyRole(['admin', 'staf'])) {
-    //         return [
-    //             'status' => $data['status'],
-    //             'note' => $data['note'],
-    //         ];
-    //     }
-
-    //     return $data;
-    // }
 
     protected function afterSave(): void
     {
@@ -101,7 +94,7 @@ class EditPendaftaran extends EditRecord
         return [
             Actions\ViewAction::make(),
             Actions\DeleteAction::make()
-                ->visible(fn() => $this->record->status === 'draft'),
+                ->visible(fn() => $this->record->status === StatusPendaftaran::DRAFT),
             // Actions\ForceDeleteAction::make(),
             // Actions\RestoreAction::make(),
         ];

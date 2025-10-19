@@ -14,6 +14,7 @@ class Pendaftaran extends Model
 
     protected $casts = [
         'berkas_uploaded_json' => 'array',
+        'status' => \App\Enums\StatusPendaftaran::class,
     ];
 
     public function periodeBeasiswa()
@@ -29,5 +30,13 @@ class Pendaftaran extends Model
     public function berkasPendaftar()
     {
         return $this->hasMany(PendaftaranBerkas::class);
+    }
+
+    public function canEdit(): bool
+    {
+        return in_array($this->status, [
+            StatusPendaftaran::DRAFT,
+            StatusPendaftaran::PERBAIKAN
+        ]);
     }
 }

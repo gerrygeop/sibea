@@ -13,15 +13,11 @@ return new class extends Migration
     {
         Schema::create('pendaftarans', function (Blueprint $table) {
             $table->id();
-
-            // Kolom Relasi
             $table->foreignId('periode_beasiswa_id')->constrained('periode_beasiswas')->cascadeOnDelete();
             $table->foreignId('mahasiswa_id')->constrained('mahasiswas')->cascadeOnDelete();
 
-            // Status Pendaftaran
-            $table->enum('status', ['draft', 'mendaftar', 'verifikasi', 'diterima', 'ditolak'])->default('draft');
+            $table->string('status')->default('draft')->nullable();
 
-            // Kolom lain (opsional)
             $table->string('note')->nullable(); // Feedback dari admin saat verifikasi
 
             $table->timestamps();

@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\PendaftaranResource\Pages;
 
+use App\Enums\StatusPendaftaran;
 use App\Filament\Resources\PendaftaranResource;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\Eloquent\Model;
 
 class CreatePendaftaran extends CreateRecord
 {
@@ -33,7 +33,7 @@ class CreatePendaftaran extends CreateRecord
 
             $data['periode_beasiswa_id'] = $periodeBeasiswaId;
             $data['mahasiswa_id'] = $user->mahasiswa->id;
-            $data['status'] = 'draft';
+            $data['status'] = StatusPendaftaran::DRAFT->value;
         }
 
         return $data;

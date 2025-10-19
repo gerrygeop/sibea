@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\StatusPendaftaran;
 use App\Filament\Resources\PendaftaranResource\Pages;
-use App\Filament\Resources\PendaftaranResource\RelationManagers;
 use App\Models\Pendaftaran;
 use App\Models\PeriodeBeasiswa;
 use Filament\Forms;
@@ -14,6 +14,7 @@ use Filament\Infolists\Components;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
@@ -26,9 +27,6 @@ class PendaftaranResource extends Resource
 
     public static function form(Form $form): Form
     {
-        $user = auth()->user();
-        // $isMahasiswa = $user->hasRole('mahasiswa');
-
         return $form
             ->schema([
                 Forms\Components\Hidden::make('periode_beasiswa_id')
@@ -119,21 +117,7 @@ class PendaftaranResource extends Resource
                                     ->money('idr'),
                                 Components\TextEntry::make('status')
                                     ->badge()
-                                    ->columnSpanFull()
-                                    ->color(fn(string $state): string => match ($state) {
-                                        'draft' => 'gray',
-                                        'verifikasi' => 'warning',
-                                        'diterima' => 'success',
-                                        'ditolak' => 'danger',
-                                        default => 'primary',
-                                    })
-                                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                                        'draft' => 'Draft',
-                                        'verifikasi' => 'Menunggu Verifikasi',
-                                        'diterima' => 'Diterima',
-                                        'ditolak' => 'Ditolak',
-                                        default => ucfirst($state),
-                                    }),
+                                    ->columnSpanFull(),
                                 Components\TextEntry::make('created_at')
                                     ->label('Tanggal Mendaftar')
                                     ->dateTime(),
@@ -306,21 +290,7 @@ class PendaftaranResource extends Resource
                     ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'draft' => 'secondary',
-                        'mendaftar' => 'primary',
-                        'verifikasi' => 'warning',
-                        'diterima' => 'success',
-                        'ditolak' => 'danger',
-                    })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'draft' => 'Draft',
-                        'verifikasi' => 'Menunggu Verifikasi',
-                        'diterima' => 'Diterima',
-                        'ditolak' => 'Ditolak',
-                        default => ucfirst($state),
-                    }),
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('note')
                     ->label('Catatan')
@@ -348,17 +318,14 @@ class PendaftaranResource extends Resource
                 Tables\Filters\TrashedFilter::make()
                     ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
                 Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'verifikasi' => 'Verifikasi',
-                        'diterima' => 'Diterima',
-                        'ditolak' => 'Ditolak',
-                    ]),
+                    ->options(collect(StatusPendaftaran::cases())->mapWithKeys(
+                        fn(StatusPendaftaran $status) => [$status->value => $status->getLabel()]
+                    )),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn(Pendaftaran $record) => $record->status === 'draft' && auth()->user()->hasRole('mahasiswa')),
+                    ->visible(fn(Pendaftaran $record) => in_array($record->status, [StatusPendaftaran::DRAFT, StatusPendaftaran::PERBAIKAN]) && auth()->user()->hasRole('mahasiswa')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -397,7 +364,7 @@ class PendaftaranResource extends Resource
             $query->where('mahasiswa_id', $user->mahasiswa->id)
                 ->whereNull('deleted_at');
         } else if ($user->hasAnyRole(['admin', 'staf'])) {
-            $query->where('status', '!=', 'draft');
+            $query->where('status', '!=', StatusPendaftaran::DRAFT->value);
         }
 
         return $query->withoutGlobalScopes([

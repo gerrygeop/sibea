@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Beasiswa;
+use App\Enums\StatusPendaftaran;
 use App\Models\Mahasiswa;
 use App\Models\Pendaftaran;
 use App\Models\PeriodeBeasiswa;
@@ -29,11 +29,11 @@ class MahasiswaStatsOverview extends BaseWidget
             ->count();
 
         // Menghitung pendaftaran yang sedang verifikasi
-        $verifikasiPending = Pendaftaran::where('status', 'verifikasi')
+        $verifikasiPending = Pendaftaran::where('status', StatusPendaftaran::VERIFIKASI->value)
             ->count();
 
         // Menghitung total pendaftaran yang diterima
-        $totalDiterima = Pendaftaran::where('status', 'diterima')
+        $totalDiterima = Pendaftaran::where('status', StatusPendaftaran::DITERIMA->value)
             ->count();
 
         return [

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PeriodeBeasiswaResource\RelationManagers;
 
+use App\Enums\StatusPendaftaran;
 use App\Filament\Resources\PendaftaranResource;
 use App\Filament\Resources\PeriodeBeasiswaResource;
 use Filament\Forms;
@@ -43,21 +44,7 @@ class PendaftaransRelationManager extends RelationManager
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'draft' => 'secondary',
-                        'verifikasi' => 'warning',
-                        'diterima' => 'success',
-                        'ditolak' => 'danger',
-                        default => 'primary',
-                    })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'draft' => 'Draft',
-                        'verifikasi' => 'Menunggu Verifikasi',
-                        'diterima' => 'Diterima',
-                        'ditolak' => 'Ditolak',
-                        default => ucfirst($state),
-                    }),
+                    ->badge(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -82,9 +69,11 @@ class PendaftaransRelationManager extends RelationManager
                 //     Tables\Actions\RestoreBulkAction::make(),
                 // ]),
             ])
-            ->modifyQueryUsing(fn(Builder $query) => $query->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]))
+            ->modifyQueryUsing(fn(Builder $query) => $query
+                ->where('status', '!=', StatusPendaftaran::DRAFT->value)
+                ->withoutGlobalScopes([
+                    SoftDeletingScope::class,
+                ]))
             ->defaultSort('created_at', 'desc');
     }
 
