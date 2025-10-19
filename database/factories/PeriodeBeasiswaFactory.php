@@ -29,18 +29,6 @@ class PeriodeBeasiswaFactory extends Factory
             'tanggal_mulai_daftar' => $mulaiDaftar,
             'tanggal_akhir_daftar' => $akhirDaftar,
             'is_aktif' => true,
-
-            // Data JSON untuk Repeater Persyaratan
-            // 'persyaratans_json' => json_encode([
-            //     [
-            //         'tipe' => 'ipk_min',
-            //         'nilai_min' => 3.00,
-            //     ],
-            //     [
-            //         'tipe' => 'semester_min',
-            //         'nilai_min' => $this->faker->numberBetween(3, 5),
-            //     ],
-            // ]),
         ];
     }
 }
