@@ -95,6 +95,6 @@ class PendaftaransRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return auth()->user()->hasAnyRole(['admin', 'staff']);
+        return auth()->user()->hasAnyRole(['admin', 'staf']);
     }
 }
