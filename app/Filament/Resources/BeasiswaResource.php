@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Exports\BeasiswaExporter;
 use App\Filament\Resources\BeasiswaResource\Pages;
-use App\Filament\Resources\BeasiswaResource\RelationManagers\MahasiswasRelationManager;
 use App\Filament\Resources\BeasiswaResource\RelationManagers\PeriodeBeasiswasRelationManager;
 use App\Models\Beasiswa;
 use App\Models\PeriodeBeasiswa;
@@ -60,10 +59,6 @@ class BeasiswaResource extends Resource
                         Components\TextEntry::make('nama_beasiswa'),
                         Components\TextEntry::make('kategori.nama_kategori'),
                         Components\TextEntry::make('lembaga_penyelenggara'),
-                        // Components\TextEntry::make('besar_beasiswa')
-                        //     ->numeric()
-                        //     ->money('idr'),
-
                         Components\TextEntry::make('deskripsi')
                             ->placeholder('-')
                             ->columnSpanFull(),
@@ -144,7 +139,6 @@ class BeasiswaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // MahasiswasRelationManager::class
             PeriodeBeasiswasRelationManager::class,
         ];
     }
@@ -161,40 +155,7 @@ class BeasiswaResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
-
-        // Jika user adalah admin atau staf, tampilkan semua beasiswa.
-        if ($user->hasAnyRole(['admin', 'staf'])) {
-            return parent::getEloquentQuery()->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-        }
-
-        // Jika user adalah mahasiswa...
-        if ($user->hasRole('mahasiswa')) {
-            $mahasiswaId = $user->mahasiswa?->id;
-
-            if ($mahasiswaId) {
-                return parent::getEloquentQuery()
-                    ->whereHas('mahasiswas', function (Builder $query) use ($mahasiswaId) {
-                        $query->where('mahasiswas.id', $mahasiswaId);
-                    })
-                    ->with(['mahasiswas' => function ($query) use ($mahasiswaId) {
-                        $query->where('mahasiswas.id', $mahasiswaId)
-                            ->select('mahasiswas.id')
-                            ->withPivot('status');
-                    }])->withoutGlobalScopes([
-                        SoftDeletingScope::class,
-                    ]);
-            }
-
-            return parent::getEloquentQuery()->whereRaw('1 = 0')->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-        }
-
-        // Jika tidak memiliki role di atas, jangan tampilkan apa-apa.
-        return parent::getEloquentQuery()->whereRaw('1 = 0')->withoutGlobalScopes([
+        return parent::getEloquentQuery()->withoutGlobalScopes([
             SoftDeletingScope::class,
         ]);
     }
