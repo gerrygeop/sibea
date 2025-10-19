@@ -4,19 +4,18 @@ namespace App\Filament\Widgets;
 
 use App\Models\Beasiswa;
 use App\Models\Mahasiswa;
+use App\Models\Pendaftaran;
+use App\Models\PeriodeBeasiswa;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\DB;
 
 class MahasiswaStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
-    // protected ?string $heading = 'Analytics';
 
     public static function canView(): bool
     {
-        $user = auth()->user();
-        return $user->hasAnyRole(['admin', 'staf']);
+        return auth()->user()->hasAnyRole(['admin', 'staf']);
     }
 
     protected function getStats(): array
@@ -24,34 +23,39 @@ class MahasiswaStatsOverview extends BaseWidget
         // Menghitung jumlah total mahasiswa
         $totalMahasiswa = Mahasiswa::count();
 
-        // Menghitung jumlah mahasiswa penerima beasiswa langsung dari tabel pivot
-        $penerimaBeasiswa = DB::table('beasiswa_mahasiswa')->distinct('mahasiswa_id')->count();
-
-        // Menghitung mahasiswa yang sedang dalam proses verifikasi
-        $verifikasiPending = DB::table('beasiswa_mahasiswa')
-            ->where('status', 'menunggu_verifikasi')
+        // Menghitung total beasiswa aktif
+        $totalBeasiswaAktif = PeriodeBeasiswa::where('is_aktif', true)
+            ->whereDate('tanggal_akhir_daftar', '>=', now())
             ->count();
 
-        $totalBeasiswa = Beasiswa::count();
+        // Menghitung pendaftaran yang sedang verifikasi
+        $verifikasiPending = Pendaftaran::where('status', 'verifikasi')
+            ->count();
 
-        // Membuat array untuk kartu statistik utama
+        // Menghitung total pendaftaran yang diterima
+        $totalDiterima = Pendaftaran::where('status', 'diterima')
+            ->count();
+
         return [
             Stat::make('Total Mahasiswa', $totalMahasiswa)
                 ->description('Jumlah total mahasiswa terdaftar')
-                ->color('primary'),
+                ->color('primary')
+                ->icon('heroicon-o-users'),
 
-            Stat::make('Total Beasiswa', $totalBeasiswa)
-                ->description('Jumlah total beasiswa terdaftar')
-                ->color('primary'),
+            Stat::make('Beasiswa Aktif', $totalBeasiswaAktif)
+                ->description('Periode beasiswa yang sedang dibuka')
+                ->color('success')
+                ->icon('heroicon-o-academic-cap'),
 
-            Stat::make('Penerima Beasiswa', $penerimaBeasiswa)
-                ->description('Mahasiswa yang pernah menerima beasiswa')
-                ->color('success'),
+            Stat::make('Menunggu Verifikasi', $verifikasiPending)
+                ->description('Pendaftaran yang belum diverifikasi')
+                ->color('warning')
+                ->icon('heroicon-o-clock'),
 
-            Stat::make('Sedang Verifikasi', $verifikasiPending)
-                ->description('Pengajuan beasiswa yang belum diverifikasi')
-                ->color('warning'),
-
+            Stat::make('Total Diterima', $totalDiterima)
+                ->description('Pendaftaran yang telah diterima')
+                ->color('success')
+                ->icon('heroicon-o-check-badge'),
         ];
     }
 }
