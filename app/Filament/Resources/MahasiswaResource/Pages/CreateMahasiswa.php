@@ -24,9 +24,6 @@ class CreateMahasiswa extends CreateRecord
                     'role_id' => 3,
                 ]);
 
-                // Berikan role 'mahasiswa'
-                // $user->assignRole('mahasiswa');
-
                 // Hapus data yang tidak ada di tabel mahasiswas
                 unset($data['nim'], $data['password']);
 

@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Exports\MahasiswaExporter;
 use App\Filament\Resources\MahasiswaResource\Pages;
-use App\Filament\Resources\MahasiswaResource\RelationManagers\BeasiswasRelationManager;
 use App\Models\Mahasiswa;
 use App\Models\User;
 use Filament\Forms\Components;
@@ -258,7 +257,7 @@ class MahasiswaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // BeasiswasRelationManager::class
+            //
         ];
     }
 
