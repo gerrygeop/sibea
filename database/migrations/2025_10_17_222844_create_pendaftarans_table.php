@@ -20,11 +20,6 @@ return new class extends Migration
 
             // Status Pendaftaran
             $table->enum('status', ['draft', 'mendaftar', 'verifikasi', 'diterima', 'ditolak'])->default('draft');
-            $table->boolean('is_finalisasi')->default(false); // True jika mahasiswa sudah klik 'Kirim'
-
-            // KOLOM PENTING: Penyimpanan Path Berkas Upload
-            // Menyimpan semua path file yang diunggah mahasiswa (misal: {"upload_ktm": "path/file.pdf"})
-            $table->json('berkas_uploaded_json')->nullable();
 
             // Kolom lain (opsional)
             $table->string('note')->nullable(); // Feedback dari admin saat verifikasi

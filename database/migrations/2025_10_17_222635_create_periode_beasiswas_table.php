@@ -25,8 +25,7 @@ return new class extends Migration
             // KOLOM JSON DARI FILAMENT REPEATER
             // Menyimpan daftar aturan cek otomatis (IPK min, Semester min)
             $table->json('persyaratans_json')->nullable();
-            // Menyimpan daftar nama berkas yang wajib diunggah (KTM, Transkrip)
-            $table->json('berkas_wajibs_json')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });
