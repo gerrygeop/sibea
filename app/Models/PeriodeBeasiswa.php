@@ -27,4 +27,14 @@ class PeriodeBeasiswa extends Model
     {
         return $this->hasMany(Pendaftaran::class);
     }
+
+    public function berkasWajibs()
+    {
+        return $this->belongsToMany(BerkasWajib::class, 'periode_berkas')->withTimestamps();
+    }
+
+    public function periodeBerkas()
+    {
+        return $this->hasMany(PeriodeBerkas::class);
+    }
 }

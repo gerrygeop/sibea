@@ -12,6 +12,10 @@ class Pendaftaran extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'berkas_uploaded_json' => 'array',
+    ];
+
     public function periodeBeasiswa()
     {
         return $this->belongsTo(PeriodeBeasiswa::class);
@@ -20,5 +24,10 @@ class Pendaftaran extends Model
     public function mahasiswa()
     {
         return $this->belongsTo(Mahasiswa::class);
+    }
+
+    public function berkasPendaftar()
+    {
+        return $this->hasMany(PendaftaranBerkas::class);
     }
 }
