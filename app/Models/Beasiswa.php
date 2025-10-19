@@ -13,16 +13,14 @@ class Beasiswa extends Model
 
     protected $guarded = ['id'];
 
-    public function mahasiswas(): BelongsToMany
-    {
-        return $this->belongsToMany(Mahasiswa::class, 'beasiswa_mahasiswa')
-            ->withPivot(['tanggal_penerimaan', 'status'])
-            ->withTimestamps();
-    }
-
     public function kategori(): BelongsToMany
     {
         return $this->belongsToMany(Kategori::class, 'beasiswa_kategori')
             ->withTimestamps();
+    }
+
+    public function periodeBeasiswas()
+    {
+        return $this->hasMany(PeriodeBeasiswa::class);
     }
 }

@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Exports\MahasiswaExporter;
 use App\Filament\Resources\MahasiswaResource\Pages;
-use App\Filament\Resources\MahasiswaResource\RelationManagers\BeasiswasRelationManager;
 use App\Models\Mahasiswa;
 use App\Models\User;
 use Filament\Forms\Components;
@@ -67,6 +66,14 @@ class MahasiswaResource extends Resource
                         Components\DatePicker::make('ttl')
                             ->label('Tanggal Lahir')
                             ->required(),
+                        Components\TextInput::make('tempat_lahir')
+                            ->label('Tempat Lahir')
+                            ->required(),
+
+                        Components\DatePicker::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->displayFormat('Y-m-d')
+                            ->required(),
 
                         Components\TextInput::make('no_hp')
                             ->tel()
@@ -127,7 +134,7 @@ class MahasiswaResource extends Resource
 
                         TextEntry::make('nama'),
                         TextEntry::make('email'),
-                        TextEntry::make('ttl')
+                        TextEntry::make('ttl_gabungan')
                             ->label('Tempat, Tanggal Lahir'),
                         TextEntry::make('no_hp'),
                         TextEntry::make('prodi'),
@@ -135,6 +142,7 @@ class MahasiswaResource extends Resource
                         TextEntry::make('angkatan'),
                         TextEntry::make('semester'),
                         TextEntry::make('sks')
+                            ->label('SKS')
                             ->numeric(),
                         TextEntry::make('ip')
                             ->label('IP')
@@ -249,7 +257,7 @@ class MahasiswaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            BeasiswasRelationManager::class
+            //
         ];
     }
 

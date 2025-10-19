@@ -4,8 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Exports\BeasiswaExporter;
 use App\Filament\Resources\BeasiswaResource\Pages;
-use App\Filament\Resources\BeasiswaResource\RelationManagers\MahasiswasRelationManager;
+use App\Filament\Resources\BeasiswaResource\RelationManagers\PeriodeBeasiswasRelationManager;
 use App\Models\Beasiswa;
+use App\Models\PeriodeBeasiswa;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components;
@@ -41,13 +42,6 @@ class BeasiswaResource extends Resource
                         Forms\Components\TextInput::make('lembaga_penyelenggara')
                             ->required(),
 
-                        Forms\Components\TextInput::make('besar_beasiswa')
-                            ->required()
-                            ->numeric(),
-
-                        Forms\Components\TextInput::make('periode')
-                            ->required(),
-
                         Forms\Components\Textarea::make('deskripsi')
                             ->columnSpanFull(),
                     ])
@@ -65,16 +59,6 @@ class BeasiswaResource extends Resource
                         Components\TextEntry::make('nama_beasiswa'),
                         Components\TextEntry::make('kategori.nama_kategori'),
                         Components\TextEntry::make('lembaga_penyelenggara'),
-                        Components\TextEntry::make('besar_beasiswa')
-                            ->numeric()
-                            ->money('idr'),
-                        Components\TextEntry::make('periode'),
-
-                        Components\TextEntry::make('mahasiswas.0.pivot.status')
-                            ->label('Status')
-                            ->badge()
-                            ->visible(fn() => auth()->user()->hasRole('mahasiswa')),
-
                         Components\TextEntry::make('deskripsi')
                             ->placeholder('-')
                             ->columnSpanFull(),
@@ -113,20 +97,6 @@ class BeasiswaResource extends Resource
                 Tables\Columns\TextColumn::make('lembaga_penyelenggara')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('besar_beasiswa')
-                    ->numeric()
-                    ->money('idr')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('periode')
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('mahasiswas.0.pivot.status')
-                    ->label('Status')
-                    ->badge()
-                    ->searchable()
-                    ->visible(fn() => auth()->user()->hasRole('mahasiswa')),
-
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -144,11 +114,8 @@ class BeasiswaResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
-                Tables\Filters\SelectFilter::make('jenis_beasiswa')
-                    ->options([
-                        'prestasi' => 'Prestasi',
-                        'tidak mampu' => 'Tidak mampu',
-                    ]),
+                Tables\Filters\SelectFilter::make('kategori')
+                    ->relationship('kategori', 'nama_kategori'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -172,7 +139,7 @@ class BeasiswaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            MahasiswasRelationManager::class
+            PeriodeBeasiswasRelationManager::class,
         ];
     }
 
@@ -188,40 +155,7 @@ class BeasiswaResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
-
-        // Jika user adalah admin atau staf, tampilkan semua beasiswa.
-        if ($user->hasAnyRole(['admin', 'staf'])) {
-            return parent::getEloquentQuery()->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-        }
-
-        // Jika user adalah mahasiswa...
-        if ($user->hasRole('mahasiswa')) {
-            $mahasiswaId = $user->mahasiswa?->id;
-
-            if ($mahasiswaId) {
-                return parent::getEloquentQuery()
-                    ->whereHas('mahasiswas', function (Builder $query) use ($mahasiswaId) {
-                        $query->where('mahasiswas.id', $mahasiswaId);
-                    })
-                    ->with(['mahasiswas' => function ($query) use ($mahasiswaId) {
-                        $query->where('mahasiswas.id', $mahasiswaId)
-                            ->select('mahasiswas.id')
-                            ->withPivot('status');
-                    }])->withoutGlobalScopes([
-                        SoftDeletingScope::class,
-                    ]);
-            }
-
-            return parent::getEloquentQuery()->whereRaw('1 = 0')->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-        }
-
-        // Jika tidak memiliki role di atas, jangan tampilkan apa-apa.
-        return parent::getEloquentQuery()->whereRaw('1 = 0')->withoutGlobalScopes([
+        return parent::getEloquentQuery()->withoutGlobalScopes([
             SoftDeletingScope::class,
         ]);
     }
