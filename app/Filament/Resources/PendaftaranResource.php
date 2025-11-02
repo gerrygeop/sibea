@@ -25,6 +25,11 @@ class PendaftaranResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->hasAnyRole(['admin', 'staf']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -170,6 +175,8 @@ class PendaftaranResource extends Resource
                                             ->copyable(false)
                                             ->formatStateUsing(fn() => 'Lihat Berkas')
                                     ])
+                                    ->hiddenLabel()
+                                    ->placeholder('-')
                                     ->grid(4),
                             ]),
                     ])
