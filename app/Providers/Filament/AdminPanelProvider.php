@@ -30,6 +30,8 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Emerald,
             ])
+            ->brandLogo(asset('img/logo-uinsi.JPG'))
+            ->brandLogoHeight('4rem')
             ->brandName('SIBEA')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
