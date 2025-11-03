@@ -15,8 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect(route('filament.admin.auth.login'));
-    // return redirect(filament()->getLoginUrl());
+    return redirect(filament()->getLoginUrl());
 });
 
 Route::get('/dashboard', function () {
