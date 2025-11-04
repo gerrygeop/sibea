@@ -76,12 +76,13 @@ class PeriodeBeasiswaResource extends Resource
                                     ])
                                     ->required(),
                             ])
+                            ->addActionLabel('Tambah persyaratan')
                             ->columns(3)
                             ->columnSpanFull(),
                     ]),
 
                 Forms\Components\Section::make('Berkas Persyaratan')
-                    ->description('Pilih berkas yang wajib diupload oleh pendaftar beasiswa.')
+                    ->description('Pilih atau tambahkan berkas yang wajib diupload oleh pendaftar beasiswa.')
                     ->schema([
                         Forms\Components\Select::make('berkasWajibs')
                             ->relationship('berkasWajibs', 'nama_berkas')
@@ -176,6 +177,7 @@ class PeriodeBeasiswaResource extends Resource
                                     ->dateTime()
                                     ->visible(fn(PeriodeBeasiswa $record): bool => $record->trashed()),
                             ])
+                            ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa')),
                     ])
                     ->columnSpan(1),
             ])

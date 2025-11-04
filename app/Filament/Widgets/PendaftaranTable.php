@@ -22,8 +22,8 @@ class PendaftaranTable extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Daftar Pendaftaran Beasiswa')
-            ->description('Berikut adalah daftar beasiswa yang telah Anda daftar.')
+            ->heading('Beasiswa Anda')
+            ->description('Berikut adalah beasiswa yang telah Anda daftar.')
             ->query(
                 Pendaftaran::query()
                     ->where('mahasiswa_id', auth()->user()->mahasiswa->id)
@@ -48,6 +48,7 @@ class PendaftaranTable extends BaseWidget
             ->filters([
                 Tables\Filters\TrashedFilter::make()
                     ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
+
                 Tables\Filters\SelectFilter::make('status')
                     ->options(collect(StatusPendaftaran::cases())->mapWithKeys(
                         fn(StatusPendaftaran $status) => [$status->value => $status->getLabel()]

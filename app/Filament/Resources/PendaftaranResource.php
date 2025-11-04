@@ -51,8 +51,7 @@ class PendaftaranResource extends Resource
                     ->description('Upload berkas sesuai persyaratan yang telah ditentukan.')
                     ->schema([
                         Forms\Components\Placeholder::make('info_berkas')
-                            ->content('Semua berkas harus diupload dengan format PDF. Maksimal ukuran file adalah 5MB masing-masing.')
-                            ->columnSpanFull(),
+                            ->content('Semua berkas harus diupload dengan format PDF. Maksimal ukuran file adalah 5MB masing-masing.'),
 
                         Forms\Components\Group::make()
                             ->schema(function (Get $get, ?Pendaftaran $record) {
@@ -130,6 +129,7 @@ class PendaftaranResource extends Resource
                                     ->label('Terakhir Diupdate')
                                     ->dateTime(),
                             ])
+                            ->collapsible()
                             ->columns(2),
 
                         Components\Section::make('Data Mahasiswa')
@@ -157,6 +157,7 @@ class PendaftaranResource extends Resource
                                 Components\TextEntry::make('mahasiswa.sks')
                                     ->label('Total SKS'),
                             ])
+                            ->collapsible()
                             ->columns(3),
 
                         Components\Section::make('Berkas Yang Diupload')
@@ -178,7 +179,8 @@ class PendaftaranResource extends Resource
                                     ->hiddenLabel()
                                     ->placeholder('-')
                                     ->grid(4),
-                            ]),
+                            ])
+                            ->collapsible(),
                     ])
                     ->columnSpan(fn($record) => $record->note ? 2 : 3),
 

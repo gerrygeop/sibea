@@ -22,6 +22,7 @@ class ViewPendaftaran extends ViewRecord
         // Aksi untuk mahasiswa
         if ($user->hasRole('mahasiswa')) {
             $actions[] = Actions\EditAction::make()
+                ->icon('heroicon-o-pencil-square')
                 ->visible(fn() => in_array($this->record->status, [
                     StatusPendaftaran::DRAFT,
                     StatusPendaftaran::PERBAIKAN,
@@ -43,7 +44,7 @@ class ViewPendaftaran extends ViewRecord
                 )
                 ->modalSubmitActionLabel('Ya, Kirim Pendaftaran')
                 ->modalCancelActionLabel('Batal')
-                ->color('success')
+                ->color('info')
                 ->action(function () {
                     $record = $this->record;
                     $periode = $record->periodeBeasiswa()->with('berkasWajibs')->first();
