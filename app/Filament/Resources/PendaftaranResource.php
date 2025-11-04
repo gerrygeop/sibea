@@ -45,14 +45,11 @@ class PendaftaranResource extends Resource
                             ->schema(self::getMahasiswaSchema())
                             ->columns(2),
                     ])
-                    ->collapsible(),
+                    ->collapsed(),
 
                 Forms\Components\Section::make('Upload Berkas')
                     ->description('Upload berkas sesuai persyaratan yang telah ditentukan.')
                     ->schema([
-                        Forms\Components\Placeholder::make('info_berkas')
-                            ->content('Semua berkas harus diupload dengan format PDF. Maksimal ukuran file adalah 5MB masing-masing.'),
-
                         Forms\Components\Group::make()
                             ->schema(function (Get $get, ?Pendaftaran $record) {
                                 $periodeBeasiswaId = $get('periode_beasiswa_id')
@@ -63,7 +60,7 @@ class PendaftaranResource extends Resource
                                     return [
                                         Forms\Components\Placeholder::make('error_periode')
                                             ->content(new HtmlString(
-                                                '<div class="text-danger-600">
+                                                '<div style="color: red;">
                                                     <strong>Error:</strong> Periode beasiswa tidak ditemukan.
                                                     Silakan kembali ke halaman periode beasiswa dan pilih "Daftar" kembali.
                                                 </div>'
@@ -78,11 +75,15 @@ class PendaftaranResource extends Resource
                                 if (!$periode || $periode->berkasWajibs->isEmpty()) {
                                     return [
                                         Forms\Components\Placeholder::make('info_no_berkas')
-                                            ->content('Tidak ada berkas yang perlu diupload untuk periode ini.'),
+                                            ->label('Tidak ada berkas')
+                                            ->content(new HtmlString('<i style="color: grey;">Tidak ada berkas yang perlu diupload untuk beasiswa ini</i>')),
                                     ];
                                 }
 
-                                $fields = [];
+                                $fields[] = Forms\Components\Placeholder::make('info_berkas')
+                                    ->hiddenLabel()
+                                    ->content(new HtmlString('<i style="color: grey;">Semua berkas harus diupload dengan format PDF. Maksimal ukuran file adalah 5MB masing-masing</i>'));
+
                                 foreach ($periode->berkasWajibs as $berkas) {
                                     $fields[] = Forms\Components\FileUpload::make('berkas_' . $berkas->id)
                                         ->label($berkas->nama_berkas)
@@ -177,7 +178,7 @@ class PendaftaranResource extends Resource
                                             ->formatStateUsing(fn() => 'Lihat Berkas')
                                     ])
                                     ->hiddenLabel()
-                                    ->placeholder('-')
+                                    ->placeholder('Tidak ada berkas yang diupload')
                                     ->grid(4),
                             ])
                             ->collapsible(),
