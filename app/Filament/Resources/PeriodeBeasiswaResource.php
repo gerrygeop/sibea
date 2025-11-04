@@ -190,8 +190,7 @@ class PeriodeBeasiswaResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('beasiswa.nama_beasiswa')
                     ->sortable()
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('nama_periode')
                     ->searchable(),
