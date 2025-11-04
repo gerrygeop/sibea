@@ -80,7 +80,8 @@ class PeriodeBeasiswaResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Berkas yang Wajib Diupload')
+                Forms\Components\Section::make('Berkas Persyaratan')
+                    ->description('Pilih berkas yang wajib diupload oleh pendaftar beasiswa.')
                     ->schema([
                         Forms\Components\Select::make('berkasWajibs')
                             ->relationship('berkasWajibs', 'nama_berkas')
@@ -96,7 +97,6 @@ class PeriodeBeasiswaResource extends Resource
                                     ->nullable(),
                             ])
                             ->hiddenLabel()
-                            ->helperText('Pilih berkas-berkas yang wajib diupload oleh pendaftar beasiswa.')
                             ->columnSpanFull(),
                     ]),
             ]);
@@ -127,7 +127,7 @@ class PeriodeBeasiswaResource extends Resource
                             ->columns(2)
                             ->columnSpanFull(),
 
-                        Components\Section::make('Persyaratan Berkas')
+                        Components\Section::make('Berkas Persyaratan')
                             ->schema([
                                 Components\RepeatableEntry::make('berkasWajibs')
                                     ->label('')
@@ -138,9 +138,10 @@ class PeriodeBeasiswaResource extends Resource
                                             ->placeholder('-')
                                             ->label(''),
                                     ])
+                                    ->placeholder('Tidak ada berkas yang wajib diupload')
                                     ->contained(false)
-                                    ->columns(2)
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->columns(2),
                             ])
                             ->columnSpanFull(),
                     ])
@@ -229,9 +230,11 @@ class PeriodeBeasiswaResource extends Resource
             ->filters([
                 Tables\Filters\TrashedFilter::make()
                     ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa')),
+
                 Tables\Filters\TernaryFilter::make('is_aktif')
                     ->label('Aktif')
                     ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa')),
+
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         DatePicker::make('tanggal_mulai_daftar'),
