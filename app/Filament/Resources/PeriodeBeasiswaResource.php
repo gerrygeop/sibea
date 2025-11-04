@@ -162,6 +162,7 @@ class PeriodeBeasiswaResource extends Resource
                                         Components\TextEntry::make('keterangan')
                                             ->label(''),
                                     ])
+                                    ->placeholder('Tidak ada persyaratan pre-check yang diperlukan')
                                     ->columns(3),
                             ]),
 
