@@ -40,7 +40,7 @@ class ViewPendaftaran extends ViewRecord
                 ->modalDescription(
                     fn() => $this->record->status === StatusPendaftaran::PERBAIKAN
                         ? 'Pastikan Anda sudah melakukan perbaikan sesuai catatan yang diberikan.'
-                        : 'Setelah dikirim Anda tidak dapat mengedit pendaftaran ini lagi sampai diizinkan oleh admin.'
+                        : 'Setelah dikirim Anda tidak dapat mengedit pendaftaran ini lagi. Kecuali status Draft atau Perlu Perbaikan'
                 )
                 ->modalSubmitActionLabel('Ya, Kirim Pendaftaran')
                 ->modalCancelActionLabel('Batal')
