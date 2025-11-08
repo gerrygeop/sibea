@@ -45,8 +45,7 @@ class Login extends AuthLogin
 
         // Jika user adalah admin atau staf, langsung return credentials
         // Tidak perlu cek ke API atau sinkronisasi data
-        if ($existingUser && in_array($existingUser->role_id, [1, 2])) {
-            // Role 1 = Admin, Role 2 = Staf
+        if ($existingUser && $existingUser->hasAnyRole(['admin', 'staf'])) {
             Log::info('Admin/Staf login detected', [
                 'nim' => $data['nim'],
                 'role_id' => $existingUser->role_id
@@ -77,21 +76,22 @@ class Login extends AuthLogin
         $apiService = app(\App\Services\ApiService::class);
 
         try {
-            // Coba login ke API
             $apiData = $apiService->login($nim, $password);
 
             if ($apiData) {
                 Log::info('API login successful', ['nim' => $nim]);
 
                 // Sinkronisasi data dengan database lokal
-                $this->syncUserFromApi($apiData, $password);
+                $this->syncUserFromApi($apiData, $password, $existingUser);
 
                 // Notification hanya untuk mahasiswa yang berhasil sync
-                Notification::make()
-                    ->title('Login Berhasil')
-                    ->body('Data Anda telah disinkronisasi dengan Portal Mahasiswa.')
-                    ->success()
-                    ->send();
+                if (!$existingUser) {
+                    Notification::make()
+                        ->title('Login Berhasil')
+                        ->body('Data Anda telah disinkronisasi dengan Portal Mahasiswa.')
+                        ->success()
+                        ->send();
+                }
             } else {
                 Log::warning('API login failed, using local auth', ['nim' => $nim]);
 
@@ -113,10 +113,10 @@ class Login extends AuthLogin
     /**
      * Sinkronisasi data user dari API ke database lokal
      */
-    protected function syncUserFromApi(array $apiData, string $password): void
+    protected function syncUserFromApi(array $apiData, string $password, ?User $existingUser): void
     {
         try {
-            DB::transaction(function () use ($apiData, $password) {
+            DB::transaction(function () use ($apiData, $password, $existingUser) {
                 // Cari atau buat user
                 $user = User::updateOrCreate(
                     ['nim' => $apiData['user']],
@@ -132,9 +132,25 @@ class Login extends AuthLogin
                     'nim' => $apiData['user']
                 ]);
 
-                // Jika user adalah mahasiswa, ambil dan sync biodata lengkap
+                // **HANYA sync biodata jika mahasiswa baru/belum ada**
                 if ($user->role_id == 3) {
-                    $this->syncMahasiswaBiodata($user, $apiData['user']);
+                    $mahasiswaExists = Mahasiswa::where('user_id', $user->id)->exists();
+
+                    if (!$mahasiswaExists) {
+                        $this->syncMahasiswaBiodata($user, $apiData['user']);
+                        Log::info('New mahasiswa biodata synced', [
+                            'user_id' => $user->id,
+                            'is_new_user' => !$existingUser
+                        ]);
+
+                        if ($existingUser) {
+                            Notification::make()
+                                ->title('Data disinkronkan')
+                                ->body('Data mahasiswa anda telah disinkronkan dengan Portal Mahasiswa')
+                                ->success()
+                                ->send();
+                        }
+                    }
                 }
             });
         } catch (\Exception $e) {
@@ -157,24 +173,22 @@ class Login extends AuthLogin
             $biodata = $apiService->getBiodata($nim);
 
             if ($biodata) {
-                Mahasiswa::updateOrCreate(
-                    ['user_id' => $user->id],
-                    [
-                        'nama' => $biodata['nama'],
-                        'email' => $biodata['email'],
-                        'tempat_lahir' => $biodata['tempat_lahir'],
-                        'tanggal_lahir' => $biodata['tanggal_lahir'],
-                        'no_hp' => $biodata['no_hp'],
-                        'prodi' => $biodata['program_studi'],
-                        'fakultas' => $biodata['fakultas'],
-                        'angkatan' => $biodata['angkatan'],
-                        'semester' => empty($biodata['semester']) ? 0 : $biodata['semester'],
-                        'sks' => empty($biodata['sks']) ? 0 : (float)$biodata['sks'],
-                        'ip' => empty($biodata['ip']) ? 0 : (float)$biodata['ip'],
-                        'ipk' => empty($biodata['ipk']) ? 0 : (float)$biodata['ipk'],
-                        'status_mahasiswa' => $biodata['status_mahasiswa'],
-                    ]
-                );
+                Mahasiswa::create([
+                    'user_id' => $user->id,
+                    'nama' => $biodata['nama'],
+                    'email' => $biodata['email'],
+                    'tempat_lahir' => $biodata['tempat_lahir'],
+                    'tanggal_lahir' => $biodata['tanggal_lahir'],
+                    'no_hp' => $biodata['no_hp'],
+                    'prodi' => $biodata['program_studi'],
+                    'fakultas' => $biodata['fakultas'],
+                    'angkatan' => $biodata['angkatan'],
+                    'semester' => empty($biodata['semester']) ? 0 : $biodata['semester'],
+                    'sks' => empty($biodata['sks']) ? 0 : (float)$biodata['sks'],
+                    'ip' => empty($biodata['ip']) ? 0 : (float)$biodata['ip'],
+                    'ipk' => empty($biodata['ipk']) ? 0 : (float)$biodata['ipk'],
+                    'status_mahasiswa' => $biodata['status_mahasiswa'],
+                ]);
 
                 Log::info('Mahasiswa biodata synced', [
                     'user_id' => $user->id,
