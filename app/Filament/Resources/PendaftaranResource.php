@@ -23,7 +23,9 @@ class PendaftaranResource extends Resource
 {
     protected static ?string $model = Pendaftaran::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+    protected static ?string $navigationGroup = 'Beasiswa';
+    protected static ?int $navigationSort = 4;
 
     public static function shouldRegisterNavigation(): bool
     {

@@ -25,6 +25,8 @@ class MahasiswaResource extends Resource
     protected static ?string $model = Mahasiswa::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?string $navigationGroup = 'Manajemen Pengguna';
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {

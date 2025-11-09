@@ -15,6 +15,7 @@ use Filament\Resources\Pages\Page;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -22,7 +23,8 @@ class PeriodeBeasiswaResource extends Resource
 {
     protected static ?string $model = PeriodeBeasiswa::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Beasiswa';
+    protected static ?int $navigationSort = 3;
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -326,5 +328,12 @@ class PeriodeBeasiswaResource extends Resource
         return auth()->check() && auth()->user()->hasRole('mahasiswa')
             ? 'Beasiswa'
             : 'Periode Beasiswa';
+    }
+
+    public static function getNavigationIcon(): string|Htmlable|null
+    {
+        return auth()->check() && auth()->user()->hasRole('mahasiswa')
+            ? 'heroicon-o-academic-cap'
+            : 'heroicon-o-calendar-days';
     }
 }

@@ -30,7 +30,7 @@ class ApiService
                 'secret' => $this->authToken,
                 'Accept' => 'application/json',
             ])
-                ->timeout(10)
+                ->timeout(60)
                 ->post("{$this->baseUrl}/v1/siakad/login", [
                     'username' => $username,
                     'password' => $password,
@@ -69,7 +69,7 @@ class ApiService
                 'secret' => $this->authToken,
                 'Accept' => 'application/json',
             ])
-                ->timeout(10)
+                ->timeout(60)
                 ->post("{$this->baseUrl}/v1/beasiswa/getBiodata", [
                     'nim' => $nim,
                 ]);
