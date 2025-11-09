@@ -18,7 +18,9 @@ class KategoriResource extends Resource
     protected static ?string $model = Kategori::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-square-2-stack';
+    protected static ?string $navigationGroup = 'Beasiswa';
     protected static ?string $label = 'Kategori Beasiswa';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
