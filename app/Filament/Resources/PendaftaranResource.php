@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StatusPendaftaran;
+use App\Filament\Exports\PendaftaranExporter;
 use App\Filament\Resources\PendaftaranResource\Pages;
 use App\Models\Mahasiswa;
 use App\Models\Pendaftaran;
@@ -279,6 +280,11 @@ class PendaftaranResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn(Pendaftaran $record) => in_array($record->status, [StatusPendaftaran::DRAFT, StatusPendaftaran::PERBAIKAN]) && auth()->user()->hasRole('mahasiswa')),
+            ])
+            ->bulkActions([
+                Tables\Actions\ExportBulkAction::make()
+                    ->exporter(PendaftaranExporter::class)
+                    ->visible(fn(): bool => auth()->user()->hasAnyRole(['admin', 'staf'])),
             ])
             ->defaultSort('created_at', 'desc');
     }

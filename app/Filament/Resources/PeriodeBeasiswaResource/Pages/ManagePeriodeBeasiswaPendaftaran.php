@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PeriodeBeasiswaResource\Pages;
 
 use App\Enums\StatusPendaftaran;
+use App\Filament\Exports\PendaftaranExporter;
 use App\Filament\Resources\PeriodeBeasiswaResource;
 use App\Models\Mahasiswa;
 use App\Models\Pendaftaran;
@@ -225,6 +226,10 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
                         StatusPendaftaran::DRAFT,
                         StatusPendaftaran::PERBAIKAN,
                     ])),
+            ])
+            ->headerActions([
+                Tables\Actions\ExportAction::make()
+                    ->exporter(PendaftaranExporter::class),
             ])
             ->modifyQueryUsing(function (Builder $query) {
                 $user = auth()->user();
