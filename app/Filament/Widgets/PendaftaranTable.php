@@ -27,6 +27,13 @@ class PendaftaranTable extends BaseWidget
             ->query(
                 Pendaftaran::query()
                     ->where('mahasiswa_id', auth()->user()->mahasiswa->id)
+                    ->with(['periodeBeasiswa.beasiswa'])
+                    ->wherehas('periodeBeasiswa', function ($q) {
+                        $q->whereNull('deleted_at')
+                            ->whereHas('beasiswa', function ($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                    })
                     ->latest()
             )
             ->columns([
