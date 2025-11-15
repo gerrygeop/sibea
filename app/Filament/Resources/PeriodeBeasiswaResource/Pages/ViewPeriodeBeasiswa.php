@@ -86,10 +86,12 @@ class ViewPeriodeBeasiswa extends ViewRecord
                         ->exists();
 
                     $today = now()->startOfDay();
-                    $dalamTanggal = $today->between(
-                        $periode->tanggal_mulai_daftar,
-                        $periode->tanggal_akhir_daftar
-                    );
+
+                    $tanggalMulai = \Carbon\Carbon::parse($periode->tanggal_mulai_daftar)->startOfDay();
+                    $tanggalAkhir = \Carbon\Carbon::parse($periode->tanggal_akhir_daftar)->endOfDay();
+
+                    $dalamTanggal = $today->greaterThanOrEqualTo($tanggalMulai)
+                        && $today->lessThanOrEqualTo($tanggalAkhir);
 
                     return !$sudahMendaftar && $dalamTanggal && $periode->is_aktif;
                 }),

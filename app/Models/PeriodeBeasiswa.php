@@ -31,7 +31,7 @@ class PeriodeBeasiswa extends Model
                 $sekarang = Carbon::now();
 
                 // #1. Pengecekan Kapan Harus Nonaktif (Tanggal Akhir Sudah Lewat)
-                if ($sekarang->greaterThan($tanggalAkhir)) {
+                if ($sekarang->greaterThan($tanggalAkhir->endOfDay())) {
                     return false;
                 }
 
