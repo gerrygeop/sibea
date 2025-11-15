@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Exports\MahasiswaExporter;
+use App\Filament\Imports\MahasiswaImporter;
 use App\Filament\Resources\MahasiswaResource\Pages;
 use App\Models\Fakultas;
 use App\Models\Mahasiswa;
@@ -313,6 +314,9 @@ class MahasiswaResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->headerActions([
+                Tables\Actions\ImportAction::make()
+                    ->importer(MahasiswaImporter::class),
+
                 Tables\Actions\ExportAction::make()
                     ->exporter(MahasiswaExporter::class),
             ])
