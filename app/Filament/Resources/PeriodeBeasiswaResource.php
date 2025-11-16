@@ -312,6 +312,8 @@ class PeriodeBeasiswaResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
+        $query->with('beasiswa');
+
         if (auth()->user()->hasRole('mahasiswa')) {
             $query->where('is_aktif', true)
                 ->whereDate('tanggal_mulai_daftar', '<=', now())

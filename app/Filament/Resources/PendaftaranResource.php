@@ -311,7 +311,12 @@ class PendaftaranResource extends Resource
         $query = parent::getEloquentQuery();
         $user = auth()->user();
 
-        $query->with(['periodeBeasiswa', 'mahasiswa.user'])
+        $query->with([
+            'periodeBeasiswa.beasiswa.kategori',
+            'periodeBeasiswa.berkasWajibs',
+            'mahasiswa.user',
+            'berkasPendaftar.berkasWajib'
+        ])
             ->whereHas('periodeBeasiswa', function ($q) {
                 $q->whereNull('deleted_at')
                     ->whereHas('beasiswa', function ($q) {

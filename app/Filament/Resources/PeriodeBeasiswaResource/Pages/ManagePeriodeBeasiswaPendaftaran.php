@@ -235,6 +235,10 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
                 $user = auth()->user();
 
                 $query
+                    ->with([
+                        'mahasiswa.user',
+                        'berkasPendaftar.berkasWajib'
+                    ])
                     ->where(function ($q) {
                         $q->where('status', '!=', StatusPendaftaran::DRAFT->value)
                             ->orWhere('status', StatusPendaftaran::PERBAIKAN->value);
