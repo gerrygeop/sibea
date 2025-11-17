@@ -5,19 +5,22 @@ namespace App\Filament\Resources\PeriodeBeasiswaResource\Pages;
 use App\Enums\StatusPendaftaran;
 use App\Filament\Exports\PendaftaranExporter;
 use App\Filament\Resources\PeriodeBeasiswaResource;
+use App\Imports\NimImport;
 use App\Models\Mahasiswa;
 use App\Models\Pendaftaran;
-use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Infolists\Components;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
 {
@@ -175,6 +178,9 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Waktu Mendaftar'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
@@ -229,7 +235,96 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
             ])
             ->headerActions([
                 Tables\Actions\ExportAction::make()
-                    ->exporter(PendaftaranExporter::class),
+                    ->exporter(PendaftaranExporter::class)
+                    ->label('Ekspor Pendaftar')
+                    ->icon('heroicon-o-arrow-up-tray'),
+
+                Tables\Actions\Action::make('bulkImport')
+                    ->label('Impor Mahasiswa')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\Section::make('Impor Mahasiswa ke Periode Ini')
+                            ->description('Masukkan NIM mahasiswa yang ingin didaftarkan ke periode beasiswa ini.')
+                            ->schema([
+                                Forms\Components\Radio::make('import_type')
+                                    ->label('Metode Impor')
+                                    ->options([
+                                        'paste' => 'Paste NIM (Max 50)',
+                                        'file' => 'Upload File (Unlimited)',
+                                    ])
+                                    ->default('paste')
+                                    ->reactive()
+                                    ->required(),
+
+                                Forms\Components\Textarea::make('nims')
+                                    ->label('Daftar NIM')
+                                    ->placeholder("2011102441001\n2011102441002\n2011102441003")
+                                    ->rows(10)
+                                    ->helperText('Pisahkan setiap NIM dengan enter/baris baru')
+                                    ->visible(fn(Forms\Get $get) => $get('import_type') === 'paste')
+                                    ->requiredIf('import_type', 'paste'),
+
+                                Forms\Components\FileUpload::make('file')
+                                    ->label('Upload File Excel/CSV')
+                                    ->acceptedFileTypes([
+                                        'text/csv',
+                                        'application/vnd.ms-excel',
+                                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                                    ])
+                                    ->helperText('File harus berisi kolom "nim"')
+                                    ->visible(fn(Forms\Get $get) => $get('import_type') === 'file')
+                                    ->requiredIf('import_type', 'file'),
+
+                                Forms\Components\Select::make('status_pendaftaran')
+                                    ->options(collect(StatusPendaftaran::cases())->mapWithKeys(
+                                        fn(StatusPendaftaran $status) => [$status->value => $status->getLabel()]
+                                    )),
+                            ])
+                    ])
+                    ->action(function (array $data) {
+                        $periode = $this->getOwnerRecord();
+
+                        // Extract NIMs
+                        $nims = [];
+                        if ($data['import_type'] === 'paste') {
+                            $nims = array_filter(array_map('trim', explode("\n", $data['nims'])));
+                        } else {
+                            // Parse file
+                            $filePath = storage_path('app/public/' . $data['file']);
+                            $nims = $this->parseNimFile($filePath);
+                        }
+
+                        if (count($nims) > 50 && $data['import_type'] === 'paste') {
+                            Notification::make()
+                                ->title('Terlalu Banyak')
+                                ->body('Maksimal 50 NIM untuk metode paste. Gunakan upload file.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Dispatch batch job
+                        $batchId = Str::uuid();
+                        $status = $data['status_pendaftaran'];
+
+                        foreach ($nims as $nim) {
+                            \App\Jobs\ImportMahasiswaToPeriodeJob::dispatch(
+                                trim($nim),
+                                $periode->id,
+                                $status->value,
+                                $batchId,
+                                auth()->id()
+                            )->onQueue('imports');
+                        }
+
+                        Notification::make()
+                            ->title('Impor Dijadwalkan')
+                            ->body(count($nims) . ' mahasiswa sedang diproses. Cek halaman ini dalam beberapa saat.')
+                            ->success()
+                            ->send();
+                    })
+                    ->modalWidth('2xl'),
             ])
             ->modifyQueryUsing(function (Builder $query) {
                 $user = auth()->user();
@@ -255,5 +350,21 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
                 return $query;
             })
             ->defaultSort('created_at', 'desc');
+    }
+
+    private function parseNimFile(string $filePath): array
+    {
+        $import = new NimImport();
+        Excel::import($import, $filePath);
+        return array_filter($import->nims);
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            \App\Filament\Resources\PeriodeBeasiswaResource\Widgets\ImportStatusWidget::make([
+                'periodeId' => $this->getOwnerRecord()->id
+            ]),
+        ];
     }
 }
