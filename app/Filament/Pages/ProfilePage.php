@@ -35,6 +35,7 @@ class ProfilePage extends Page implements HasForms
                 'email' => $mahasiswa->email ?? '-',
                 'tempat_lahir' => $mahasiswa->tempat_lahir ?? '-',
                 'tanggal_lahir' => $mahasiswa->tanggal_lahir ?? '-',
+                'jenis_kelamin' => $mahasiswa->jenis_kelamin ?? '-',
                 'no_hp' => $mahasiswa->no_hp ?? '-',
                 'prodi' => $mahasiswa->prodi ?? '-',
                 'fakultas' => $mahasiswa->fakultas ?? '-',
@@ -81,6 +82,9 @@ class ProfilePage extends Page implements HasForms
                                 ->disabled()
                                 ->dehydrated(),
                             TextInput::make('tanggal_lahir')
+                                ->disabled()
+                                ->dehydrated(),
+                            TextInput::make('jenis_kelamin')
                                 ->disabled()
                                 ->dehydrated(),
                             TextInput::make('no_hp')

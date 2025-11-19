@@ -55,14 +55,19 @@ class PendaftaranExporter extends Exporter
                 ->enabledByDefault(false),
 
             ExportColumn::make('mahasiswa.no_hp')
-                ->label('No Hp')
+                ->label('No Tel')
                 ->enabledByDefault(false),
 
             ExportColumn::make('mahasiswa.email')
                 ->label('Email')
                 ->enabledByDefault(false),
 
+            ExportColumn::make('mahasiswa.jenis_kelamin')
+                ->label('Jenis Kelamin')
+                ->enabledByDefault(false),
+
             ExportColumn::make('note')
+                ->label('Catatan')
                 ->enabledByDefault(false),
             ExportColumn::make('created_at')
                 ->enabledByDefault(false),

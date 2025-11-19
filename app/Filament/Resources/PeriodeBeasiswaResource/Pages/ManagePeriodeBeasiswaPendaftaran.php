@@ -27,6 +27,7 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
     protected static string $resource = PeriodeBeasiswaResource::class;
 
     protected static string $relationship = 'pendaftarans';
+    protected static null|string $title = 'Pendaftar Periode Beasiswa';
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
@@ -108,6 +109,9 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
                             ->label('NIM'),
                         Components\TextEntry::make('mahasiswa.email')
                             ->label('Email'),
+                        Components\TextEntry::make('mahasiswa.jenis_kelamin')
+                            ->label('Jenis Kelamin')
+                            ->placeholder('-'),
                         Components\TextEntry::make('mahasiswa.no_hp')
                             ->label('Nomor HP'),
                         Components\TextEntry::make('mahasiswa.ttl_gabungan')

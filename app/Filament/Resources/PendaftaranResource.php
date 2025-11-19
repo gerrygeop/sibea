@@ -144,6 +144,9 @@ class PendaftaranResource extends Resource
                                     ->label('NIM'),
                                 Components\TextEntry::make('mahasiswa.email')
                                     ->label('Email'),
+                                Components\TextEntry::make('mahasiswa.jenis_kelamin')
+                                    ->label('Jenis Kelamin')
+                                    ->placeholder('-'),
                                 Components\TextEntry::make('mahasiswa.no_hp')
                                     ->label('Nomor HP'),
                                 Components\TextEntry::make('mahasiswa.ttl_gabungan')
@@ -356,6 +359,13 @@ class PendaftaranResource extends Resource
 
             Forms\Components\TextInput::make('email')
                 ->default($mahasiswa?->email)
+                ->disabled(true)
+                ->dehydrated(false),
+
+            Forms\Components\TextInput::make('jenis_kelamin')
+                ->label('Jenis Kelamin')
+                ->default($mahasiswa?->jenis_kelamin)
+                ->placeholder('-')
                 ->disabled(true)
                 ->dehydrated(false),
 

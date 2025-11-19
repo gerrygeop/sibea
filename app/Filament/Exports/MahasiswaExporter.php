@@ -26,7 +26,10 @@ class MahasiswaExporter extends Exporter
             ExportColumn::make('email'),
             ExportColumn::make('ttl')
                 ->label('Tempat, Tanggal Lahir'),
-            ExportColumn::make('no_hp'),
+            ExportColumn::make('jenis_kelamin')
+                ->label('Jenis Kelamin'),
+            ExportColumn::make('no_hp')
+                ->label('No Tel'),
             ExportColumn::make('prodi'),
             ExportColumn::make('fakultas'),
             ExportColumn::make('angkatan'),
@@ -37,15 +40,7 @@ class MahasiswaExporter extends Exporter
                 ->label('IP'),
             ExportColumn::make('ipk')
                 ->label('IPK'),
-            ExportColumn::make('beasiswa.nama_beasiswa')
-                ->label('Nama Beasiswa')
-                ->enabledByDefault(false),
-            ExportColumn::make('beasiswa.lemabaga_penyelenggara')
-                ->enabledByDefault(false),
-            ExportColumn::make('beasiswa.besar_beasiswa')
-                ->enabledByDefault(false),
-            ExportColumn::make('beasiswa.periode')
-                ->enabledByDefault(false),
+
             ExportColumn::make('created_at')
                 ->enabledByDefault(false),
             ExportColumn::make('updated_at')

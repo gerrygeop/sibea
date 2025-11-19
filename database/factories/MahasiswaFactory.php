@@ -39,6 +39,7 @@ class MahasiswaFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'tempat_lahir' => $this->faker->city(),
             'tanggal_lahir' => $this->faker->date('Y-m-d', '2005-01-01'), // Tambahan untuk 'ttl'
+            'jenis_kelamin' => $this->faker->randomElement(['Laki-laki', 'Perempuan']),
             'no_hp' => '08' . $this->faker->numerify('##########'),
             'prodi' => $prodi,
             'fakultas' => $fakultas,
