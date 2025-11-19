@@ -3,13 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Exports\MahasiswaExporter;
-use App\Filament\Imports\MahasiswaImporter;
 use App\Filament\Resources\MahasiswaResource\Pages;
+use App\Imports\NimImport;
 use App\Models\Fakultas;
 use App\Models\Mahasiswa;
 use App\Models\Prodi;
 use App\Models\User;
 use Filament\Forms\Components;
+use Filament\Forms\Get;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -19,7 +20,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Excel;
 
 class MahasiswaResource extends Resource
 {
@@ -75,6 +79,14 @@ class MahasiswaResource extends Resource
                         Components\DatePicker::make('tanggal_lahir')
                             ->label('Tanggal Lahir')
                             ->displayFormat('Y-m-d')
+                            ->required(),
+
+                        Components\Select::make('jenis_kelamin')
+                            ->label('Jenis Kelamin')
+                            ->options([
+                                'Laki-laki' => 'Laki-laki',
+                                'Perempuan' => 'Perempuan',
+                            ])
                             ->required(),
 
                         Components\TextInput::make('no_hp')
@@ -189,6 +201,9 @@ class MahasiswaResource extends Resource
                         TextEntry::make('email'),
                         TextEntry::make('ttl_gabungan')
                             ->label('Tempat, Tanggal Lahir'),
+                        TextEntry::make('jenis_kelamin')
+                            ->label('Jenis Kelamin')
+                            ->placeholder('-'),
                         TextEntry::make('no_hp'),
                         TextEntry::make('prodi'),
                         TextEntry::make('fakultas'),
@@ -314,20 +329,88 @@ class MahasiswaResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->headerActions([
-                Tables\Actions\ImportAction::make()
-                    ->importer(MahasiswaImporter::class),
+                Tables\Actions\Action::make('bulkImport')
+                    ->label('Impor Mahasiswa')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('success')
+                    ->form([
+                        Components\Section::make('Impor Mahasiswa ke Periode Ini')
+                            ->description('Masukkan NIM mahasiswa yang ingin didaftarkan ke periode beasiswa ini.')
+                            ->schema([
+                                Components\Radio::make('import_type')
+                                    ->label('Metode Impor')
+                                    ->options([
+                                        'paste' => 'Paste NIM (Max 50)',
+                                        'file' => 'Upload File (Unlimited)',
+                                    ])
+                                    ->default('paste')
+                                    ->reactive()
+                                    ->required(),
 
-                Tables\Actions\ExportAction::make()
-                    ->exporter(MahasiswaExporter::class),
+                                Components\Textarea::make('nims')
+                                    ->label('Daftar NIM')
+                                    ->placeholder("2011102441001\n2011102441002\n2011102441003")
+                                    ->rows(10)
+                                    ->helperText('Pisahkan setiap NIM dengan enter/baris baru')
+                                    ->visible(fn(Get $get) => $get('import_type') === 'paste')
+                                    ->requiredIf('import_type', 'paste'),
+
+                                Components\FileUpload::make('file')
+                                    ->label('Upload File Excel/CSV')
+                                    ->acceptedFileTypes([
+                                        'text/csv',
+                                        'application/vnd.ms-excel',
+                                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                                    ])
+                                    ->helperText('File harus berisi kolom "nim"')
+                                    ->visible(fn(Get $get) => $get('import_type') === 'file')
+                                    ->requiredIf('import_type', 'file'),
+                            ])
+                    ])
+                    ->action(function (array $data) {
+                        // Extract NIMs
+                        $nims = [];
+                        if ($data['import_type'] === 'paste') {
+                            $nims = array_filter(array_map('trim', explode("\n", $data['nims'])));
+                        } else {
+                            // Parse file
+                            $filePath = storage_path('app/public/' . $data['file']);
+                            $nims = $this->parseNimFile($filePath);
+                        }
+
+                        if (count($nims) > 50 && $data['import_type'] === 'paste') {
+                            Notification::make()
+                                ->title('Terlalu Banyak')
+                                ->body('Maksimal 50 NIM untuk metode paste. Gunakan upload file.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Dispatch batch job
+                        $batchId = Str::uuid();
+
+                        foreach ($nims as $nim) {
+                            \App\Jobs\ImportMahasiswaJob::dispatch(
+                                trim($nim),
+                                $batchId,
+                                auth()->id()
+                            )->onQueue('imports');
+                        }
+
+                        Notification::make()
+                            ->title('Impor Dijadwalkan')
+                            ->body(count($nims) . ' mahasiswa sedang diproses. Cek halaman ini dalam beberapa saat.')
+                            ->success()
+                            ->send();
+                    })
+                    ->modalWidth('2xl'),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                ]),
                 Tables\Actions\ExportBulkAction::make()
-                    ->exporter(MahasiswaExporter::class),
+                    ->exporter(MahasiswaExporter::class)
+                    ->label('Ekspor Mahasiswa')
+                    ->icon('heroicon-o-arrow-up-tray'),
             ]);
     }
 
@@ -351,8 +434,16 @@ class MahasiswaResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->with('user')
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    private function parseNimFile(string $filePath): array
+    {
+        $import = new NimImport();
+        Excel::import($import, $filePath);
+        return array_filter($import->nims);
     }
 }

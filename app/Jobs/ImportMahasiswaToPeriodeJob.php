@@ -189,13 +189,4 @@ class ImportMahasiswaToPeriodeJob implements ShouldQueue
                 'updated_at' => now(),
             ]);
     }
-
-    public function failed(\Throwable $exception): void
-    {
-        Log::error('Import job failed permanently', [
-            'nim' => $this->nim,
-            'periode_id' => $this->periodeBeasiswaId,
-            'error' => $exception->getMessage()
-        ]);
-    }
 }
