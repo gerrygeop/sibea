@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PendaftaranResource\Pages;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Filament\Resources\PendaftaranResource;
 use Filament\Actions;
 use Filament\Actions\Action;
@@ -17,7 +18,7 @@ class CreatePendaftaran extends CreateRecord
     {
         $user = auth()->user();
 
-        if ($user->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             $periodeBeasiswaId = $data['periode_beasiswa_id'] ?? request()->get('periode_beasiswa_id');
 
             if (!$periodeBeasiswaId) {

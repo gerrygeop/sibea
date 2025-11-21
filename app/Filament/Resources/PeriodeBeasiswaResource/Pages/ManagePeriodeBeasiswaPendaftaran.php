@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PeriodeBeasiswaResource\Pages;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Filament\Exports\PendaftaranExporter;
 use App\Filament\Resources\PeriodeBeasiswaResource;
 use App\Imports\NimImport;
@@ -43,7 +44,7 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
         $user = auth()->user();
         $pendaftaran = $this->record;
 
-        if ($user->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             $this->redirect($this->getResource()::getUrl('view', ['record' => $pendaftaran]));
         }
     }
@@ -188,7 +189,7 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
-                    ->hidden(auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(auth()->user()->hasRole(UserRole::MAHASISWA)),
 
                 Tables\Filters\SelectFilter::make('status')
                     ->options(collect(StatusPendaftaran::cases())->mapWithKeys(
@@ -197,7 +198,7 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
 
                 Tables\Filters\SelectFilter::make('fakultas')
                     ->label('Fakultas')
-                    ->hidden(auth()->user()->hasRole('mahasiswa'))
+                    ->hidden(auth()->user()->hasRole(UserRole::MAHASISWA))
                     ->options(
                         Mahasiswa::query()->distinct()->pluck('fakultas', 'fakultas')->toArray()
                     )
@@ -213,7 +214,7 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
 
                 Tables\Filters\SelectFilter::make('prodi')
                     ->label('Prodi')
-                    ->hidden(auth()->user()->hasRole('mahasiswa'))
+                    ->hidden(auth()->user()->hasRole(UserRole::MAHASISWA))
                     ->options(
                         Mahasiswa::query()->distinct()->pluck('prodi', 'prodi')->toArray()
                     )
@@ -231,7 +232,7 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->label('Update Status')
-                    ->visible(auth()->user()->hasAnyRole(['admin', 'staf']))
+                    ->visible(auth()->user()->hasAnyRole([UserRole::ADMIN, UserRole::STAFF, UserRole::PENGELOLA]))
                     ->hidden(fn(Pendaftaran $record) => in_array($record->status, [
                         StatusPendaftaran::DRAFT,
                         StatusPendaftaran::PERBAIKAN,
@@ -347,7 +348,7 @@ class ManagePeriodeBeasiswaPendaftaran extends ManageRelatedRecords
                         SoftDeletingScope::class,
                     ]);
 
-                if ($user->hasRole('mahasiswa')) {
+                if ($user->hasRole(UserRole::MAHASISWA)) {
                     $query->where('mahasiswa_id', $user->mahasiswa->id);
                 }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\PeriodeBeasiswaResource\Pages;
 use App\Filament\Resources\PeriodeBeasiswaResource\RelationManagers;
 use App\Models\PeriodeBeasiswa;
@@ -184,7 +185,7 @@ class PeriodeBeasiswaResource extends Resource
                                     ->dateTime()
                                     ->visible(fn(PeriodeBeasiswa $record): bool => $record->trashed()),
                             ])
-                            ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa')),
+                            ->hidden(fn(): bool => auth()->user()->hasRole(UserRole::MAHASISWA)),
                     ])
                     ->columnSpan(1),
             ])
@@ -224,26 +225,26 @@ class PeriodeBeasiswaResource extends Resource
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
-                    ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa'))
+                    ->hidden(fn(): bool => auth()->user()->hasRole(UserRole::MAHASISWA))
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
-                    ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa'))
+                    ->hidden(fn(): bool => auth()->user()->hasRole(UserRole::MAHASISWA))
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
-                    ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa'))
+                    ->hidden(fn(): bool => auth()->user()->hasRole(UserRole::MAHASISWA))
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
-                    ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn(): bool => auth()->user()->hasRole(UserRole::MAHASISWA)),
 
                 Tables\Filters\TernaryFilter::make('is_aktif')
                     ->label('Aktif')
-                    ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn(): bool => auth()->user()->hasRole(UserRole::MAHASISWA)),
 
                 Tables\Filters\Filter::make('created_at')
                     ->form([
@@ -272,7 +273,7 @@ class PeriodeBeasiswaResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ])
-                    ->visible(fn(): bool => auth()->user()->hasRole('admin')),
+                    ->visible(fn(): bool => auth()->user()->hasRole(UserRole::ADMIN)),
             ])
             ->defaultSort('created_at', 'desc');
     }
@@ -286,11 +287,12 @@ class PeriodeBeasiswaResource extends Resource
 
     public static function getRecordSubNavigation(Page $page): array
     {
-        if (auth()->user()->hasAnyRole(['admin', 'staf'])) {
+        if (auth()->user()->hasAnyRole([UserRole::ADMIN, UserRole::STAFF, UserRole::PENGELOLA])) {
             return $page->generateNavigationItems([
                 Pages\ViewPeriodeBeasiswa::class,
                 Pages\EditPeriodeBeasiswa::class,
                 Pages\ManagePeriodeBeasiswaPendaftaran::class,
+                Pages\ManagePeriodeBeasiswaPengelola::class,
             ]);
         }
 
@@ -305,6 +307,7 @@ class PeriodeBeasiswaResource extends Resource
             'view' => Pages\ViewPeriodeBeasiswa::route('/{record}'),
             'edit' => Pages\EditPeriodeBeasiswa::route('/{record}/edit'),
             'pendaftaran' => Pages\ManagePeriodeBeasiswaPendaftaran::route('/{record}/pendaftaran'),
+            'pengelola' => Pages\ManagePeriodeBeasiswaPengelola::route('/{record}/pengelola'),
         ];
     }
 
@@ -313,11 +316,18 @@ class PeriodeBeasiswaResource extends Resource
         $query = parent::getEloquentQuery();
 
         $query->with('beasiswa');
+        $user = auth()->user();
 
-        if (auth()->user()->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             $query->where('is_aktif', true)
                 ->whereDate('tanggal_mulai_daftar', '<=', now())
                 ->whereDate('tanggal_akhir_daftar', '>=', now());
+        }
+
+        if ($user->hasRole(UserRole::PENGELOLA)) {
+            $query->whereHas('pengelola', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
         }
 
         return $query->withoutGlobalScopes([
@@ -327,14 +337,14 @@ class PeriodeBeasiswaResource extends Resource
 
     public static function getLabel(): ?string
     {
-        return auth()->check() && auth()->user()->hasRole('mahasiswa')
+        return auth()->check() && auth()->user()->hasRole(UserRole::MAHASISWA)
             ? 'Beasiswa'
             : 'Periode Beasiswa';
     }
 
     public static function getNavigationIcon(): string|Htmlable|null
     {
-        return auth()->check() && auth()->user()->hasRole('mahasiswa')
+        return auth()->check() && auth()->user()->hasRole(UserRole::MAHASISWA)
             ? 'heroicon-o-academic-cap'
             : 'heroicon-o-calendar-days';
     }

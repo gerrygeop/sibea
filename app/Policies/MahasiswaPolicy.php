@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Mahasiswa;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -13,7 +14,7 @@ class MahasiswaPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('staf');
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**
@@ -21,7 +22,7 @@ class MahasiswaPolicy
      */
     public function view(User $user, Mahasiswa $mahasiswa): bool
     {
-        return $user->hasRole('staf') || $user->id === $mahasiswa->user_id;
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**
@@ -37,7 +38,7 @@ class MahasiswaPolicy
      */
     public function update(User $user, Mahasiswa $mahasiswa): bool
     {
-        return $user->hasRole('staf');
+        return false;
     }
 
     /**

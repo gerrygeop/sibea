@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MahasiswaResource\Pages;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\MahasiswaResource;
 use App\Models\User;
 use Filament\Actions;
@@ -21,7 +22,7 @@ class CreateMahasiswa extends CreateRecord
                     'name' => $data['nama'], // Ambil nama dari form mahasiswa
                     'nim' => $data['nim'],
                     'password' => $data['password'], // Password sudah di-hash oleh form
-                    'role_id' => 3,
+                    'role_id' => UserRole::MAHASISWA_ID,
                 ]);
 
                 // Hapus data yang tidak ada di tabel mahasiswas

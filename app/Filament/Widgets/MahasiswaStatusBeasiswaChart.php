@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Models\Pendaftaran;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ class MahasiswaStatusBeasiswaChart extends ChartWidget
     // Only show for students
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('mahasiswa');
+        return auth()->user()->hasRole(UserRole::MAHASISWA);
     }
 
     protected function getData(): array

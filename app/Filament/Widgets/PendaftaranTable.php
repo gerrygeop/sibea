@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Filament\Resources\PendaftaranResource;
 use App\Models\Pendaftaran;
 use Filament\Tables;
@@ -16,7 +17,7 @@ class PendaftaranTable extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('mahasiswa');
+        return auth()->user()->hasRole(UserRole::MAHASISWA);
     }
 
     public function table(Table $table): Table
@@ -49,12 +50,12 @@ class PendaftaranTable extends BaseWidget
                     ->icon(fn($state): string => StatusPendaftaran::from($state->value)->getIcon()),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal Daftar')
-                    ->date()
+                    ->dateTime()
                     ->sortable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
-                    ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn() => auth()->user()->hasRole(UserRole::MAHASISWA)),
 
                 Tables\Filters\SelectFilter::make('status')
                     ->options(collect(StatusPendaftaran::cases())->mapWithKeys(

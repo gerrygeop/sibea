@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages\Auth;
 
+use App\Enums\UserRole;
 use App\Models\Mahasiswa;
 use App\Models\User;
 use Filament\Pages\Auth\Login as AuthLogin;
@@ -45,10 +46,10 @@ class Login extends AuthLogin
 
         // Jika user adalah admin atau staf, langsung return credentials
         // Tidak perlu cek ke API atau sinkronisasi data
-        if ($existingUser && $existingUser->hasAnyRole(['admin', 'staf'])) {
+        if ($existingUser && $existingUser->hasAnyRole([UserRole::ADMIN, UserRole::STAFF, UserRole::PENGELOLA])) {
             Log::info('Admin/Staf login detected', [
                 'nim' => $data['nim'],
-                'role_id' => $existingUser->role_id
+                'role' => $existingUser->role->name
             ]);
 
             return [
@@ -57,10 +58,10 @@ class Login extends AuthLogin
             ];
         }
 
-        // Untuk mahasiswa (role_id = 3) atau user baru, coba login ke API
-        if (!$existingUser || $existingUser->role_id == 3) {
-            $this->handleMahasiswaLogin($data['nim'], $data['password'], $existingUser);
-        }
+        // Untuk mahasiswa atau user baru, coba login ke API
+        // if (!$existingUser || $existingUser->role_id == UserRole::MAHASISWA_ID) {
+        //     $this->handleMahasiswaLogin($data['nim'], $data['password'], $existingUser);
+        // }
 
         return [
             'nim' => $data['nim'],
@@ -123,7 +124,7 @@ class Login extends AuthLogin
                     [
                         'name' => $apiData['nama'],
                         'password' => bcrypt($password),
-                        'role_id' => 3, // Role mahasiswa
+                        'role_id' => UserRole::MAHASISWA_ID, // Role mahasiswa
                     ]
                 );
 
@@ -133,7 +134,7 @@ class Login extends AuthLogin
                 ]);
 
                 // **HANYA sync biodata jika mahasiswa baru/belum ada**
-                if ($user->role_id == 3) {
+                if ($user->role_id == UserRole::MAHASISWA_ID) {
                     $mahasiswaExists = Mahasiswa::where('user_id', $user->id)->exists();
 
                     if (!$mahasiswaExists) {
@@ -192,6 +193,7 @@ class Login extends AuthLogin
 
                 Log::info('Mahasiswa biodata synced', [
                     'user_id' => $user->id,
+                    'user_name' => $user->name,
                     'nim' => $nim
                 ]);
             } else {
@@ -221,7 +223,7 @@ class Login extends AuthLogin
 
             // Validasi role
             if ($user && method_exists($user, 'hasAnyRole')) {
-                if (!$user->hasAnyRole(['admin', 'staf', 'mahasiswa'])) {
+                if (!$user->hasAnyRole([UserRole::ADMIN, UserRole::STAFF, UserRole::MAHASISWA, UserRole::PENGELOLA])) {
                     Auth::logout();
 
                     Log::warning('Invalid role login attempt', [

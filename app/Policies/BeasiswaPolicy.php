@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Beasiswa;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -13,7 +14,7 @@ class BeasiswaPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('staf');
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**
@@ -21,7 +22,7 @@ class BeasiswaPolicy
      */
     public function view(User $user, Beasiswa $beasiswa): bool
     {
-        return $user->hasRole('staf');
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**
@@ -29,7 +30,7 @@ class BeasiswaPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('staf');
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**
@@ -37,7 +38,7 @@ class BeasiswaPolicy
      */
     public function update(User $user, Beasiswa $beasiswa): bool
     {
-        return $user->hasRole('staf');
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**
@@ -45,7 +46,7 @@ class BeasiswaPolicy
      */
     public function delete(User $user, Beasiswa $beasiswa): bool
     {
-        return $user->hasRole('staf');
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**

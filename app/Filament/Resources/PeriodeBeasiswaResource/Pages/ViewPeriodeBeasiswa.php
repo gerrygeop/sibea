@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PeriodeBeasiswaResource\Pages;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\PendaftaranResource;
 use App\Filament\Resources\PeriodeBeasiswaResource;
 use App\Models\Pendaftaran;
@@ -16,7 +17,6 @@ class ViewPeriodeBeasiswa extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
             Actions\Action::make('daftar')
                 ->label('Daftar')
                 ->action(function () {
@@ -74,7 +74,7 @@ class ViewPeriodeBeasiswa extends ViewRecord
                 })
                 ->visible(function () {
                     $user = auth()->user();
-                    if (!$user->hasRole('mahasiswa')) {
+                    if (!$user->hasRole(UserRole::MAHASISWA)) {
                         return false;
                     }
 

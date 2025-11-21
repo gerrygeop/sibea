@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Exports\BeasiswaExporter;
 use App\Filament\Resources\BeasiswaResource\Pages;
 use App\Filament\Resources\BeasiswaResource\RelationManagers\PeriodeBeasiswasRelationManager;
@@ -161,10 +162,19 @@ class BeasiswaResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->with('kategori')
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        $query = parent::getEloquentQuery()
+            ->with('kategori');
+
+        $user = auth()->user();
+
+        if ($user->hasRole(UserRole::PENGELOLA)) {
+            $query->whereHas('periodeBeasiswas.pengelola', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        return $query->withoutGlobalScopes([
+            SoftDeletingScope::class
+        ]);
     }
 }

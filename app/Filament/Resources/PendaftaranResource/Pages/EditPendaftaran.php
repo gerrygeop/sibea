@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\PendaftaranResource\Pages;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Filament\Resources\PendaftaranResource;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class EditPendaftaran extends EditRecord
 {
@@ -20,7 +20,7 @@ class EditPendaftaran extends EditRecord
         $user = auth()->user();
         $pendaftaran = $this->record;
 
-        if ($user->hasRole('mahasiswa') && in_array($this->record->status, [
+        if ($user->hasRole(UserRole::MAHASISWA) && in_array($this->record->status, [
             StatusPendaftaran::DRAFT,
             StatusPendaftaran::PERBAIKAN,
         ]) === false) {
@@ -31,7 +31,7 @@ class EditPendaftaran extends EditRecord
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $pendaftaran]));
-        } elseif ($user->hasAnyRole(['admin', 'staf']) && in_array($this->record->status, [
+        } elseif ($user->hasAnyRole([UserRole::ADMIN, UserRole::STAFF, UserRole::PENGELOLA]) && in_array($this->record->status, [
             StatusPendaftaran::DRAFT,
             StatusPendaftaran::PERBAIKAN,
         ]) === true) {

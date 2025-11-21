@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\UserRole;
 use App\Services\ApiService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Section;
@@ -27,7 +28,7 @@ class ProfilePage extends Page implements HasForms
     {
         $user = auth()->user();
 
-        if ($user->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             $mahasiswa = $user->mahasiswa;
             $this->form->fill([
                 'nim' => $user->nim,
@@ -58,7 +59,7 @@ class ProfilePage extends Page implements HasForms
     {
         $user = auth()->user();
 
-        if ($user->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             return $form
                 ->schema([
                     Section::make('Data akun')
@@ -151,7 +152,7 @@ class ProfilePage extends Page implements HasForms
     {
         $user = auth()->user();
 
-        if ($user->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             return [
                 Action::make('sync')
                     ->label('Sinkronkan Data')

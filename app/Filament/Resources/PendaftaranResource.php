@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Filament\Exports\PendaftaranExporter;
 use App\Filament\Resources\PendaftaranResource\Pages;
 use App\Models\Mahasiswa;
@@ -30,7 +31,12 @@ class PendaftaranResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()->hasAnyRole(['admin', 'staf']);
+        return auth()->user()->hasAnyRole([UserRole::ADMIN, UserRole::STAFF, UserRole::MAHASISWA]);
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasAnyRole([UserRole::ADMIN, UserRole::STAFF, UserRole::MAHASISWA]);
     }
 
     public static function form(Form $form): Form
@@ -221,13 +227,13 @@ class PendaftaranResource extends Resource
                 Tables\Columns\TextColumn::make('mahasiswa.nama')
                     ->searchable()
                     ->sortable()
-                    ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn() => auth()->user()->hasRole(UserRole::MAHASISWA)),
 
                 Tables\Columns\TextColumn::make('mahasiswa.user.nim')
                     ->label('NIM')
                     ->searchable()
                     ->sortable()
-                    ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn() => auth()->user()->hasRole(UserRole::MAHASISWA)),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
@@ -235,11 +241,16 @@ class PendaftaranResource extends Resource
                 Tables\Columns\TextColumn::make('mahasiswa.fakultas')
                     ->label('Fakultas')
                     ->sortable()
-                    ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn() => auth()->user()->hasRole(UserRole::MAHASISWA)),
                 Tables\Columns\TextColumn::make('mahasiswa.prodi')
                     ->label('Prodi')
                     ->sortable()
-                    ->hidden(fn() => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn() => auth()->user()->hasRole(UserRole::MAHASISWA)),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tanggal Daftar')
+                    ->dateTime()
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -249,7 +260,7 @@ class PendaftaranResource extends Resource
 
                 Tables\Filters\SelectFilter::make('fakultas')
                     ->label('Fakultas')
-                    ->hidden(auth()->user()->hasRole('mahasiswa'))
+                    ->hidden(auth()->user()->hasRole(UserRole::MAHASISWA))
                     ->options(
                         Mahasiswa::query()->distinct()->pluck('fakultas', 'fakultas')->toArray()
                     )
@@ -265,7 +276,7 @@ class PendaftaranResource extends Resource
 
                 Tables\Filters\SelectFilter::make('prodi')
                     ->label('Prodi')
-                    ->hidden(auth()->user()->hasRole('mahasiswa'))
+                    ->hidden(auth()->user()->hasRole(UserRole::MAHASISWA))
                     ->options(
                         Mahasiswa::query()->distinct()->pluck('prodi', 'prodi')->toArray()
                     )
@@ -282,12 +293,12 @@ class PendaftaranResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn(Pendaftaran $record) => in_array($record->status, [StatusPendaftaran::DRAFT, StatusPendaftaran::PERBAIKAN]) && auth()->user()->hasRole('mahasiswa')),
+                    ->visible(fn(Pendaftaran $record) => in_array($record->status, [StatusPendaftaran::DRAFT, StatusPendaftaran::PERBAIKAN]) && auth()->user()->hasRole(UserRole::MAHASISWA)),
             ])
             ->bulkActions([
                 Tables\Actions\ExportBulkAction::make()
                     ->exporter(PendaftaranExporter::class)
-                    ->visible(fn(): bool => auth()->user()->hasAnyRole(['admin', 'staf'])),
+                    ->visible(fn(): bool => auth()->user()->hasAnyRole([UserRole::ADMIN, UserRole::STAFF])),
             ])
             ->defaultSort('created_at', 'desc');
     }
@@ -327,10 +338,10 @@ class PendaftaranResource extends Resource
                     });
             });
 
-        if ($user->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             $query->where('mahasiswa_id', $user->mahasiswa->id)
                 ->whereNull('deleted_at');
-        } else if ($user->hasAnyRole(['admin', 'staf'])) {
+        } else if ($user->hasAnyRole([UserRole::ADMIN, UserRole::STAFF])) {
             $query->where('status', '!=', StatusPendaftaran::DRAFT->value);
         }
 

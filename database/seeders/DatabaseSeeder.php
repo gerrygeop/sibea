@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Mahasiswa;
 use App\Models\PeriodeBeasiswa;
 use App\Models\User;
@@ -20,21 +21,22 @@ class DatabaseSeeder extends Seeder
         ]);
 
         DB::table('roles')->insert([
-            ['name' => 'admin'],
-            ['name' => 'staf'],
-            ['name' => 'mahasiswa'],
+            ['name' => UserRole::ADMIN],
+            ['name' => UserRole::STAFF],
+            ['name' => UserRole::MAHASISWA],
+            ['name' => UserRole::PENGELOLA],
         ]);
 
         User::factory()->create([
             'name' => 'Admin',
             'nim' => 'admin',
-            'role_id' => 1,
+            'role_id' => UserRole::ADMIN_ID,
         ]);
 
         User::factory()->create([
-            'name' => 'Staf Akademik',
-            'nim' => 'stafakademik',
-            'role_id' => 2,
+            'name' => 'Staff Akademik',
+            'nim' => 'staffakademik',
+            'role_id' => UserRole::MAHASISWA_ID,
         ]);
 
         DB::table('kategoris')->insert([

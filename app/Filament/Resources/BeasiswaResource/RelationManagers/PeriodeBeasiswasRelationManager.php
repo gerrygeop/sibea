@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BeasiswaResource\RelationManagers;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\PeriodeBeasiswaResource;
 use App\Models\PeriodeBeasiswa;
 use Filament\Forms;
@@ -206,7 +207,7 @@ class PeriodeBeasiswasRelationManager extends RelationManager
 
                 Tables\Filters\TernaryFilter::make('is_aktif')
                     ->label('Aktif')
-                    ->hidden(fn(): bool => auth()->user()->hasRole('mahasiswa')),
+                    ->hidden(fn(): bool => auth()->user()->hasRole(UserRole::MAHASISWA)),
 
                 Tables\Filters\Filter::make('created_at')
                     ->form([

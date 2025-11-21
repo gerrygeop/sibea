@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\PeriodeBeasiswa;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -13,7 +14,7 @@ class PeriodeBeasiswaPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['mahasiswa', 'staf']);
+        return $user->hasAnyRole([UserRole::MAHASISWA, UserRole::STAFF, UserRole::PENGELOLA]);
     }
 
     /**
@@ -21,7 +22,16 @@ class PeriodeBeasiswaPolicy
      */
     public function view(User $user, PeriodeBeasiswa $periode_beasiswa): bool
     {
-        return $user->hasAnyRole(['mahasiswa', 'staf']);
+        if ($user->hasAnyRole([UserRole::MAHASISWA, UserRole::STAFF])) {
+            return true;
+        }
+
+        // Cek apakah user adalah pengelola periode ini
+        if ($user->hasRole(UserRole::PENGELOLA)) {
+            return $periode_beasiswa->pengelola()->where('user_id', $user->id)->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -29,7 +39,7 @@ class PeriodeBeasiswaPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('staf');
+        return $user->hasRole(UserRole::STAFF);
     }
 
     /**
@@ -37,7 +47,15 @@ class PeriodeBeasiswaPolicy
      */
     public function update(User $user, PeriodeBeasiswa $periode_beasiswa): bool
     {
-        return $user->hasRole('staf');
+        if ($user->hasRole(UserRole::STAFF)) {
+            return true;
+        }
+
+        if ($user->hasRole(UserRole::PENGELOLA)) {
+            return $periode_beasiswa->pengelola()->where('user_id', $user->id)->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -45,7 +63,11 @@ class PeriodeBeasiswaPolicy
      */
     public function delete(User $user, PeriodeBeasiswa $periode_beasiswa): bool
     {
-        return $user->hasRole('staf');
+        if ($user->hasRole(UserRole::STAFF)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

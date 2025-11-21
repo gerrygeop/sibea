@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Models\Pendaftaran;
 use App\Models\PeriodeBeasiswa;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -15,7 +16,7 @@ class MahasiswaPersonalStats extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('mahasiswa');
+        return auth()->user()->hasRole(UserRole::MAHASISWA);
     }
 
     protected function getStats(): array

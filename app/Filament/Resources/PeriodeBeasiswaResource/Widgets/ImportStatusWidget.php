@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PeriodeBeasiswaResource\Widgets;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Models\PeriodeMahasiswaImport;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -17,7 +18,7 @@ class ImportStatusWidget extends TableWidget
 
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('admin');
+        return auth()->user()->hasRole(UserRole::ADMIN);
     }
 
     public function table(Table $table): Table

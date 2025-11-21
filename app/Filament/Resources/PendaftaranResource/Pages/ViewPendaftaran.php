@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PendaftaranResource\Pages;
 
 use App\Enums\StatusPendaftaran;
+use App\Enums\UserRole;
 use App\Filament\Resources\PendaftaranResource;
 use Filament\Actions;
 use Filament\Forms;
@@ -20,7 +21,7 @@ class ViewPendaftaran extends ViewRecord
         $actions = [];
 
         // Aksi untuk mahasiswa
-        if ($user->hasRole('mahasiswa')) {
+        if ($user->hasRole(UserRole::MAHASISWA)) {
             $actions[] = Actions\EditAction::make()
                 ->icon('heroicon-o-pencil-square')
                 ->visible(fn() => in_array($this->record->status, [
@@ -88,7 +89,7 @@ class ViewPendaftaran extends ViewRecord
         }
 
         // Aksi untuk admin/staf
-        if ($user->hasAnyRole(['admin', 'staf'])) {
+        if ($user->hasAnyRole([UserRole::ADMIN, UserRole::STAFF])) {
             $actions[] = Actions\Action::make('updateStatus')
                 ->label('Update Status')
                 ->icon('heroicon-o-check-circle')
