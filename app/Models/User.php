@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -66,6 +65,11 @@ class User extends Authenticatable
     public function mahasiswa()
     {
         return $this->hasOne(Mahasiswa::class);
+    }
+
+    public function periodeBeasiswas()
+    {
+        return $this->belongsToMany(PeriodeBeasiswa::class, 'periode_beasiswa_pengelola')->withTimestamps();
     }
 
     public function getFilamentName(): string

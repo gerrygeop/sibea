@@ -69,4 +69,9 @@ class PeriodeBeasiswa extends Model
     {
         return $this->hasMany(PeriodeBerkas::class);
     }
+
+    public function pengelola()
+    {
+        return $this->belongsToMany(User::class, 'periode_beasiswa_pengelola')->withTimestamps();
+    }
 }
